@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import Hotkeys from 'react-hot-keys';
 import './index.scss';
 import * as serviceWorker from './serviceWorker';
-import { State, interpretKeypress, Card, Keypress, ID } from './model';
+import { State, interpretKeypress, Card, Keypress, ID, Index, Note } from './model';
 import 'materialize-css/dist/js/materialize.min.js';
 
 
 
 type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelected: boolean }
+type PreviewProps = { card: Card, id: ID, state: State }
 
 function onKeyDown(e: React.KeyboardEvent) {
   if (e.key === 'Escape') {
@@ -18,7 +19,54 @@ function onKeyDown(e: React.KeyboardEvent) {
   }
 }
 
-function RenderCard({card, id, state, isFocused, isSelected}: CardProps): JSX.Element {
+function scrollToElement(el : HTMLElement) {
+  el.scrollIntoView({behavior: "smooth", block: "center"})
+}
+
+function EditNote(
+  props: { note: Note, id: ID }
+): JSX.Element {
+
+  const {note, id} = props
+  const ref: React.MutableRefObject<HTMLTextAreaElement | null> = useRef(null)
+
+  if (ref.current)
+    scrollToElement(ref.current)
+
+  return (
+    <textarea autoFocus
+      ref={ref}
+      className="z-depth-3"
+      value={note.contents} 
+      onChange={e => updateNote(id, e.target.value)} 
+      onKeyDown={onKeyDown}
+    />
+  )
+}
+
+function ViewNote(
+  props: { card: Note, id: ID, state: State, isFocused: boolean, isSelected: boolean }
+): JSX.Element {
+
+  const ifFocused = props.isFocused ? "z-depth-3" : "";
+  const ifSelected = props.isSelected ? "blue lighten-5" : "";
+  const className = ["card-panel", ifFocused, ifSelected].join(" ");
+
+  const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null)
+
+  if (ref.current && props.isFocused)
+    scrollToElement(ref.current)
+
+  return (
+    <div className={className} ref={ref}>
+      <ReactMarkdown source={props.card.contents} />
+    </div>
+  )
+}
+
+function RenderCard(props: CardProps): JSX.Element {
+  const {card, id, state, isFocused} = props;
+
   if (card.type === 'index') {
     return (
       <div>
@@ -27,37 +75,51 @@ function RenderCard({card, id, state, isFocused, isSelected}: CardProps): JSX.El
     )
   }
   else {
-    const ifFocused = isFocused ? "z-depth-3" : "";
-    const ifSelected = isSelected ? "blue lighten-5" : "";
-    const className = ["card-panel", ifFocused, ifSelected].join(" ");
 
     if (isFocused && state.mode === 'editing') {
       return (
-        <textarea autoFocus 
-          className={ifFocused}
-          value={card.contents} 
-          onChange={e => updateNote(id, e.target.value)} 
-          onKeyDown={onKeyDown}
-        />
+        <EditNote note={card} id={id} />
       )
     }
     else {
       return (
-        <div className={className}>
-          <ReactMarkdown source={card.contents} />
-        </div>
+        <ViewNote {...props} card={card} />
       )
     }
   }
 }
 
+function CardPreview({card, id, state}: PreviewProps): JSX.Element {
+  if (card.type === 'index') {
+    return (
+      <div className="card-panel truncate">
+        {`Index: (${card.contents.length} cards)`}
+      </div>
+    )
+  }
+  else {
+    return (
+      <div className="card-panel truncate">
+        <ReactMarkdown source={card.contents} />
+      </div>
+    )
+  }
+}
+
 function Editor({state}: {state: State}): JSX.Element {
   const cards = state.currentIndex.contents
+  const focusedID = cards[state.focus]
+  const outgoing = state.db[focusedID + "-outgoing"] as Index | undefined
+  const incoming = state.db[focusedID + "-incoming"] as Index | undefined
+
   return (
     <div className="row">
       <div className="pinned col s3 offset-s1">
+        {incoming && incoming.contents.map(function (id: ID, i: number) {
+            return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
+        })}
       </div>
-      <div className="col s4 offset-s4">
+      <div className="col s4 offset-s4" style={{marginBottom: "20em"}}>
         {cards.map(function (id: ID, i: number) {
             const card = state.db[id]
             const isFocused = state.focus === i
@@ -65,27 +127,14 @@ function Editor({state}: {state: State}): JSX.Element {
               ((state.focus <= i && i <= state.selection!) ||
               (state.focus >= i && i >= state.selection!))
 
-            if (isSelected)
-              console.log("Selected", i)
 
             return <RenderCard id={id} card={card} key={i} state={state} isFocused={isFocused} isSelected={isSelected} />
         })}
       </div>
       <div className="pinned col s3 offset-s8">
-        <div className="card-panel truncate">
-          <span>
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry. Lorem Ipsum has been the industry's standard dummy text
-            ever since the 1500s, when an unknown printer took a galley of
-            type and scrambled it to make a type specimen book. It has
-            survived not only five centuries, but also the leap into
-            electronic typesetting, remaining essentially unchanged. It was
-            popularised in the 1960s with the release of Letraset sheets
-            containing Lorem Ipsum passages, and more recently with desktop
-            publishing software like Aldus PageMaker including versions of
-            Lorem Ipsum. Why do we use it?
-          </span>
-        </div>
+        {outgoing && outgoing.contents.map(function (id: ID, i: number) {
+            return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
+        })}
       </div>
     </div>
   )

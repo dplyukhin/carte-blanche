@@ -37,14 +37,16 @@ export function interpretKeypress(key: Keypress, state: State) {
             state.focus = state.focus + 1
             state.mode = 'editing'
         }
-        // else if (key === 'shift+space') {
-        //     const index = state.newIndex()
-        //     state.insertAfter(state.focus, index)
-        //     state.focus = state.focus + 1
-        //     state.enter(state.focusedCardID!)
-        // }
         else if (key === 'paste') {
             state.paste()
+        }
+        else if (key === 'right' && state.focus >= 0) {
+            const note = state.currentIndex.contents[state.focus]
+            state.enter(note + '-outgoing')
+        }
+        else if (key === 'left' && state.focus >= 0) {
+            const note = state.currentIndex.contents[state.focus]
+            state.enter(note + '-incoming')
         }
     }
     if (state.mode === 'viewing' || state.mode === 'selecting') {
@@ -137,7 +139,14 @@ export class State {
     // NAVIGATION
 
     enter(id: ID) {
-        this.crumbs.push([id, -1])
+        let focus
+        if (this.db[id].contents.length > 0) {
+            focus = 0
+        }
+        else {
+            focus = -1
+        }
+        this.crumbs.push([id, focus])
     }
     exit() {
         if (this.crumbs.length > 1) {
