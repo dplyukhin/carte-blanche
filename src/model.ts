@@ -20,12 +20,12 @@ type Breadcrumbs = [ID, number][]
 export type Keypress 
     = 'enter' | 'escape' | 'space' | 'shift+space' | 'backspace'
     | 'left' | 'right' | 'up' | 'down' 
-    | 'copy' | 'paste' | 'undo' | 'redo'
+    | 'copy' | 'paste' | 'cut' | 'undo' | 'redo'
     | 'shift+down' | 'shift+up'
 
 export function interpretKeypress(key: Keypress, state: State) {
     if (state.mode === 'viewing') {
-        if (key === 'enter') {
+        if (key === 'enter' && state.focus >= 0) {
             state.mode = 'editing'
         }
         else if (key === 'escape') {
@@ -37,12 +37,12 @@ export function interpretKeypress(key: Keypress, state: State) {
             state.focus = state.focus + 1
             state.mode = 'editing'
         }
-        else if (key === 'shift+space') {
-            const index = state.newIndex()
-            state.insertAfter(state.focus, index)
-            state.focus = state.focus + 1
-            state.enter(state.focusedCardID!)
-        }
+        // else if (key === 'shift+space') {
+        //     const index = state.newIndex()
+        //     state.insertAfter(state.focus, index)
+        //     state.focus = state.focus + 1
+        //     state.enter(state.focusedCardID!)
+        // }
         else if (key === 'paste') {
             state.paste()
         }
@@ -53,6 +53,16 @@ export function interpretKeypress(key: Keypress, state: State) {
         }
         else if (key === 'copy' && state.focus >= 0) {
             state.copy()
+            state.mode = 'viewing'
+            state.selection = undefined
+        }
+        else if (key === 'cut' && state.focus >= 0) {
+            state.copy()
+            state.deleteSelection()
+        }
+        else if (key === 'escape') {
+            state.mode = 'viewing'
+            state.selection = undefined
         }
         else if (key === 'up') {
             state.goUp()
@@ -62,10 +72,16 @@ export function interpretKeypress(key: Keypress, state: State) {
         }
         else if (key === 'shift+down' && state.focus >= 0) {
             state.mode = 'selecting'
+            if (state.selection === undefined) {
+                state.selection = state.focus
+            }
             state.goDown()
         }
         else if (key === 'shift+up') {
             state.mode = 'selecting'
+            if (state.selection === undefined) {
+                state.selection = state.focus
+            }
             state.goUp()
         }
     }
@@ -153,10 +169,51 @@ export class State {
 
     insertAfter(focus: number, id: ID) {
         this.currentIndex.contents.splice(focus + 1, 0, id)
+
+        // If this note is added to the outgoing links of another
+        // note, then add the latter to the *incoming* links of the former.
+        const indexID = this.currentIndexID;
+        if (indexID.endsWith("-outgoing")) {
+            const note : ID = indexID.substr(0, indexID.length - 9)
+            const incomingIndex = this.db[id + "-incoming"] as Index
+            incomingIndex.contents.push(note)
+        }
+        if (indexID.endsWith("-incoming")) {
+            const note : ID = indexID.substr(0, indexID.length - 9)
+            const outgoingIndex = this.db[id + "-outgoing"] as Index
+            outgoingIndex.contents.push(note)
+        }
+    }
+    delete(focus: number) {
+        const id = this.currentIndex.contents[focus]
+        this.currentIndex.contents.splice(focus, 1)
+        // Update the focus if it's now out of bounds
+        if (this.focus > this.currentIndex.contents.length - 1) {
+            this.focus = this.focus - 1
+        }
+
+        // If this note was deleted from the outgoing links of
+        // another note, then we should also remove that note
+        // from the incoming links of this note.
+        const indexID = this.currentIndexID;
+        if (indexID.endsWith("-outgoing")) {
+            const note : ID = indexID.substr(0, indexID.length - 9)
+            const incomingIndex = this.db[id + "-incoming"] as Index
+            const focus = incomingIndex.contents.findIndex(x => x === note)
+            incomingIndex.contents.splice(focus, 1)
+        }
+        if (indexID.endsWith("-incoming")) {
+            const note : ID = indexID.substr(0, indexID.length - 9)
+            const outgoingIndex = this.db[id + "-outgoing"] as Index
+            const focus = outgoingIndex.contents.findIndex(x => x === note)
+            outgoingIndex.contents.splice(focus, 1)
+        }
     }
     newNote(): ID {
         const id = uuid()
         this.db[id] = {type: 'note', contents: ""}
+        this.db[id + "-incoming"] = {type: 'index', contents: []}
+        this.db[id + "-outgoing"] = {type: 'index', contents: []}
         return id
     }
     newIndex(): ID {
@@ -173,6 +230,7 @@ export class State {
             const upper = Math.max(this.focus, this.selection!)
             this.currentIndex.contents.splice(lower, upper - lower + 1)
             this.mode = 'viewing'
+            this.selection = undefined
             this.focus = lower
         }
         // Update the focus if it's now out of bounds
@@ -192,7 +250,6 @@ export class State {
             for (let i = lower; i <= upper; i++) {
                 this.clipboard.push(index.contents[i])
             }
-            this.mode = 'viewing'
         }
     }
     paste() {

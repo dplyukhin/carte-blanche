@@ -1,0 +1,26 @@
+@import "materialize-css/sass/materialize.scss";
+
+// 
+// Import a Google Font
+// @import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
+
+h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+h2 {
+    margin: 0;
+    font-size: 2rem;
+}
+h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+body {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+}
+pre {
+    overflow-x: scroll;
+}
