@@ -1,11 +1,18 @@
 import React, { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
+import RemarkMathPlugin from 'remark-math';
+import RemarkHighlightPlugin from 'remark-highlight.js';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { BlockMath, InlineMath } from 'react-katex';
 import Hotkeys from 'react-hot-keys';
 import './index.scss';
 import * as serviceWorker from './serviceWorker';
 import { State, interpretKeypress, Card, Keypress, ID, Index, Note } from './model';
 import 'materialize-css/dist/js/materialize.min.js';
+import 'katex/dist/katex.min.css';
+import NoteEditor from './NoteEditor';
 
 
 
@@ -34,6 +41,11 @@ function EditNote(
     scrollToElement(ref.current)
 
   return (
+    <div className="card-panel z-depth-3">
+      <NoteEditor note={note} id={id} updateNote={updateNote} onKeyDown={onKeyDown} />
+    </div>
+    
+    /*
     <textarea autoFocus
       ref={ref}
       className="z-depth-3"
@@ -41,7 +53,14 @@ function EditNote(
       onChange={e => updateNote(id, e.target.value)} 
       onKeyDown={onKeyDown}
     />
+    */
   )
+}
+
+const MarkdownRenderers: ReactMarkdown.Renderers = {
+  math: ({value}) => <BlockMath>{value}</BlockMath>,
+  inlineMath: ({ value }) => <InlineMath>{value}</InlineMath>,
+  code: ({language, value}) => <SyntaxHighlighter language={language} style={docco}>{value}</SyntaxHighlighter>
 }
 
 function ViewNote(
@@ -59,7 +78,11 @@ function ViewNote(
 
   return (
     <div className={className} ref={ref}>
-      <ReactMarkdown source={props.card.contents} />
+      <ReactMarkdown 
+        source={props.card.contents}
+        plugins={[RemarkMathPlugin, RemarkHighlightPlugin]}
+        renderers={MarkdownRenderers as any}
+      />
     </div>
   )
 }
@@ -164,7 +187,11 @@ const keymap : { [key: string] : Keypress} = {
   'u': 'undo',
   'ctrl+r': 'redo',
   'y': 'copy',
-  'p': 'paste'
+  'p': 'paste',
+  'x': 'cut',
+  'd': 'backspace',
+  'i': 'enter',
+  'a': 'space'
 }
 
 const boundKeys = Object.keys(keymap).join(",")

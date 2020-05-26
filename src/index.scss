@@ -22,5 +22,9 @@ body {
     hyphens: auto;
 }
 pre {
-    overflow-x: scroll;
+    overflow-x: auto;
+}
+textarea {
+    resize: none;
+    overflow-y: hidden;
 }
