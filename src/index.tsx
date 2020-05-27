@@ -114,13 +114,13 @@ function CardPreview({card, id, state}: PreviewProps): JSX.Element {
     )
   }
   else {
-    const lines = card.contents.split("\n\n");
-    const preview = lines.length > 2 
-      ? lines.slice(0,2).join("\n\n") + "\n\n..." 
+    const words = card.contents.split(" ");
+    const preview = words.length > 20 
+      ? words.slice(0,20).join(" ") + "..." 
       : card.contents;
 
     return (
-      <div className="card-panel truncate">
+      <div className="card-panel">
         <ReactMarkdown 
           source={preview}
           plugins={[RemarkMathPlugin, RemarkHighlightPlugin]}

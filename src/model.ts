@@ -60,7 +60,7 @@ export function interpretKeypress(key: Keypress, state: State) {
     }
     if (state.mode === 'viewing' || state.mode === 'selecting') {
         if (key === 'backspace' && state.focus >= 0) {
-            state.deleteSelection()
+            state.removeSelection()
         }
         else if (key === 'copy' && state.focus >= 0) {
             state.copy()
@@ -69,7 +69,7 @@ export function interpretKeypress(key: Keypress, state: State) {
         }
         else if (key === 'cut' && state.focus >= 0) {
             state.copy()
-            state.deleteSelection()
+            state.removeSelection()
         }
         else if (key === 'escape') {
             state.mode = 'viewing'
@@ -252,7 +252,7 @@ export class State {
         }
         this.save()
     }
-    delete(focus: number) {
+    remove(focus: number) {
         const id = this.currentIndex.contents[focus]
         this.currentIndex.contents.splice(focus, 1)
         // Update the focus if it's now out of bounds
@@ -292,15 +292,17 @@ export class State {
         this.save()
         return id
     }
-    deleteSelection() {
+    removeSelection() {
         if (this.mode === 'viewing') {
-            this.delete(this.focus)
+            this.remove(this.focus)
         }
         else if (this.mode === 'selecting') {
             const lower = Math.min(this.focus, this.selection!)
             const upper = Math.max(this.focus, this.selection!)
             for (let i = lower; i <= upper; i++) {
-                this.delete(i);
+                // Delete the lowest index, and the next note
+                // to delete will be moved to that element. 
+                this.remove(lower);
             }
             this.mode = 'viewing'
             this.selection = undefined
