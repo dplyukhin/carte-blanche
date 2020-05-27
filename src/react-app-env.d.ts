@@ -6,4 +6,4 @@ declare module 'remark-highlight.js';
 declare module 'react-syntax-highlighter';
 declare module 'react-syntax-highlighter/dist/esm/styles/hljs';
 declare module 'slate-markdown';
-declare module 'slate-plain-serializer';
+declare module 'isomorphic-fetch';

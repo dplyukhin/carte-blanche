@@ -9,7 +9,7 @@ import { BlockMath, InlineMath } from 'react-katex';
 import Hotkeys from 'react-hot-keys';
 import './index.scss';
 import * as serviceWorker from './serviceWorker';
-import { State, interpretKeypress, Card, Keypress, ID, Index, Note } from './model';
+import { State, interpretKeypress, Card, Keypress, ID, Index, Note, Snapshot, DB_STRING, Cloud, CLOUD_PATH } from './model';
 import 'materialize-css/dist/js/materialize.min.js';
 import 'katex/dist/katex.min.css';
 import NoteEditor from './NoteEditor';
@@ -20,9 +20,12 @@ type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelec
 type PreviewProps = { card: Card, id: ID, state: State }
 
 function onKeyDown(e: React.KeyboardEvent) {
-  if (e.key === 'Escape') {
-    state.mode = 'viewing'
-    render()
+  if (state) {
+    if (e.key === 'Escape') {
+      state.mode = 'viewing'
+      state.save()
+      render()
+    }
   }
 }
 
@@ -44,16 +47,6 @@ function EditNote(
     <div className="card-panel z-depth-3">
       <NoteEditor note={note} id={id} updateNote={updateNote} onKeyDown={onKeyDown} />
     </div>
-    
-    /*
-    <textarea autoFocus
-      ref={ref}
-      className="z-depth-3"
-      value={note.contents} 
-      onChange={e => updateNote(id, e.target.value)} 
-      onKeyDown={onKeyDown}
-    />
-    */
   )
 }
 
@@ -121,15 +114,37 @@ function CardPreview({card, id, state}: PreviewProps): JSX.Element {
     )
   }
   else {
+    const lines = card.contents.split("\n\n");
+    const preview = lines.length > 2 
+      ? lines.slice(0,2).join("\n\n") + "\n\n..." 
+      : card.contents;
+
     return (
       <div className="card-panel truncate">
-        <ReactMarkdown source={card.contents} />
+        <ReactMarkdown 
+          source={preview}
+          plugins={[RemarkMathPlugin, RemarkHighlightPlugin]}
+          renderers={MarkdownRenderers as any}
+        />
       </div>
     )
   }
 }
 
-function Editor({state}: {state: State}): JSX.Element {
+function Editor({state}: {state: State | null}): JSX.Element {
+
+  if (state === null) {
+    return (
+      <div className="row">
+        <div className="s3 offset-s4">
+          <div className="card-panel valign-wrapper">
+            <b className="center-align">Loading...</b>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const cards = state.currentIndex.contents
   const focusedID = cards[state.focus]
   const outgoing = state.db[focusedID + "-outgoing"] as Index | undefined
@@ -209,25 +224,74 @@ function App() {
 
 
 
-const state = new State();
+let state : State | null = null;
+setInterval(() => {
+  if (state !== null)
+    state.upload()
+}, 10000)
 
-function handleKey(key: string, event: any){
-  // Prevent the default refresh event under WINDOWS system
-  event.preventDefault() 
-  console.log(keymap[key]) 
-  interpretKeypress(keymap[key], state);
-  console.log(state)
+const text = localStorage.getItem(DB_STRING)
+const localSnapshot: Snapshot = text ? JSON.parse(text) : null
+console.log("Got snapshot from localstorage:", localSnapshot)
+
+Cloud.filesDownload({
+  path: CLOUD_PATH
+}).then((result : any) => {
+  
+  result.fileBlob.text().then((text: string) => {
+
+    const cloudSnapshot: Snapshot = JSON.parse(text)
+    console.log("Got cloud snapshot:", cloudSnapshot)
+
+    if (localSnapshot === null || 
+        localSnapshot.timestamp < cloudSnapshot.timestamp) {
+      state = new State(cloudSnapshot);
+      state.save()
+    }
+    else if (localSnapshot !== null) {
+      state = new State(localSnapshot);
+      state.dirty = true
+      state.upload()
+    }
+    else {
+      state = new State(null);
+    }
+    render()
+  })
+}, (result: any) => {
+  console.error("Error fetching data from cloud:")
+  console.error(result)
+
+  if (localSnapshot !== null) {
+    state = new State(localSnapshot);
+  }
+  else {
+    state = new State(null);
+  }
   render()
+});
+
+function handleKey(key: string, event: any) {
+  if (state) {
+    // Prevent the default refresh event under WINDOWS system
+    event.preventDefault() 
+    console.log(keymap[key]) 
+    interpretKeypress(keymap[key], state);
+    console.log(state)
+    render()
+  }
 }; 
 
 function updateNote(id : ID, contents : string) {
-  const note = state.db[id]
-  if (note.type === 'note') {
-    note.contents = contents
-    render()
-  }
-  else {
-    throw Error(`Cannot update card ${id}: not a note`)
+  if (state) {
+    const note = state.db[id]
+    if (note.type === 'note') {
+      note.contents = contents
+      render()
+    }
+    else {
+      throw Error(`Cannot update card ${id}: not a note`)
+    }
   }
 }
 

@@ -1,4 +1,13 @@
 import { v4 as uuid } from 'uuid';
+import fetch from 'isomorphic-fetch';
+import { Dropbox } from 'dropbox';
+
+
+export const Cloud = new Dropbox({
+  fetch: fetch,
+  accessToken: 'TahCAO1x6BoAAAAAAAAM-pkDosR_tJknAEdc22YJ-3feI94jorQVVLRH5eXCO5UW'
+});
+
 
 export type ID = string
 export type Card = Note | Index
@@ -94,6 +103,15 @@ export function interpretKeypress(key: Keypress, state: State) {
     }
 }
 
+export const DB_STRING = 'database';
+export const CLOUD_PATH = '/database.json';
+
+export type Snapshot = {
+    db: Database,
+    root: ID,
+    timestamp: number
+}
+
 export class State {
     // Persistent state
     db: Database
@@ -104,15 +122,55 @@ export class State {
     mode: 'viewing' | 'editing' | 'selecting'
     clipboard: ID[]
     selection?: number
+    dirty: boolean
 
-    constructor() {
-        this.root = uuid()
-        this.db = {}
-        this.db[this.root] = { type: 'index', contents: [] }
-
+    constructor(snapshot: Snapshot | null) {
+        if (snapshot === null) {
+            this.root = uuid()
+            this.db = {}
+            this.db[this.root] = { type: 'index', contents: [] }
+        }
+        else {
+            this.root = snapshot.root
+            this.db = snapshot.db
+        }
         this.crumbs = [[this.root, -1]]
         this.mode = 'viewing'
         this.clipboard = []
+        this.dirty = false
+
+    }
+
+    get snapshot(): Snapshot {
+        return {
+            db: this.db,
+            root: this.root,
+            timestamp: Date.now()
+        }
+    }
+
+    save() {
+        localStorage.setItem(DB_STRING, JSON.stringify(this.snapshot))
+        console.log("Saved change to local storage")
+        this.dirty = true
+    }
+
+    upload() {
+        if (this.dirty) {
+            Cloud.filesUpload({
+                contents: JSON.stringify(this.snapshot),
+                path: CLOUD_PATH,
+                mode: { ".tag": 'overwrite' },
+                mute: true
+            }).then(e => {
+                console.log('Upload successful');
+                console.log(e);
+                this.dirty = false
+            }, e => {
+                console.error('Upload failed!');
+                console.error(e);
+            });
+        }
     }
 
     get focus(): number {
@@ -192,6 +250,7 @@ export class State {
             const outgoingIndex = this.db[id + "-outgoing"] as Index
             outgoingIndex.contents.push(note)
         }
+        this.save()
     }
     delete(focus: number) {
         const id = this.currentIndex.contents[focus]
@@ -217,27 +276,32 @@ export class State {
             const focus = outgoingIndex.contents.findIndex(x => x === note)
             outgoingIndex.contents.splice(focus, 1)
         }
+        this.save()
     }
     newNote(): ID {
         const id = uuid()
         this.db[id] = {type: 'note', contents: ""}
         this.db[id + "-incoming"] = {type: 'index', contents: []}
         this.db[id + "-outgoing"] = {type: 'index', contents: []}
+        this.save()
         return id
     }
     newIndex(): ID {
         const id = uuid()
         this.db[id] = {type: 'index', contents: []}
+        this.save()
         return id
     }
     deleteSelection() {
         if (this.mode === 'viewing') {
-            this.currentIndex.contents.splice(this.focus, 1)
+            this.delete(this.focus)
         }
         else if (this.mode === 'selecting') {
             const lower = Math.min(this.focus, this.selection!)
             const upper = Math.max(this.focus, this.selection!)
-            this.currentIndex.contents.splice(lower, upper - lower + 1)
+            for (let i = lower; i <= upper; i++) {
+                this.delete(i);
+            }
             this.mode = 'viewing'
             this.selection = undefined
             this.focus = lower
@@ -266,5 +330,4 @@ export class State {
             this.insertAfter(this.focus + i, this.clipboard[i])
         }
     }
-
 }
