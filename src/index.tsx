@@ -231,44 +231,48 @@ setInterval(() => {
 }, 10000)
 
 const text = localStorage.getItem(DB_STRING)
-const localSnapshot: Snapshot = text ? JSON.parse(text) : null
+const localSnapshot: Snapshot | null = text ? JSON.parse(text) : null
 console.log("Got snapshot from localstorage:", localSnapshot)
+
+function loadState(local: Snapshot | null, cloud: Snapshot | null) {
+  if (local === null && cloud === null) {
+    state = new State(null);
+  }
+  else if (cloud === null) {
+    state = new State(local);
+  }
+  else if (local === null || local.timestamp < cloud.timestamp) {
+    state = new State(cloud);
+  }
+  render();
+}
 
 Cloud.filesDownload({
   path: CLOUD_PATH
 }).then((result : any) => {
-  
-  result.fileBlob.text().then((text: string) => {
 
-    const cloudSnapshot: Snapshot = JSON.parse(text)
-    console.log("Got cloud snapshot:", cloudSnapshot)
-
-    if (localSnapshot === null || 
-        localSnapshot.timestamp < cloudSnapshot.timestamp) {
-      state = new State(cloudSnapshot);
-      state.save()
-    }
-    else if (localSnapshot !== null) {
-      state = new State(localSnapshot);
-      state.dirty = true
-      state.upload()
+  var reader = new FileReader();
+  reader.onload = function(evt) {
+    if (evt && evt.target && evt.target.result) {
+      const cloud = JSON.parse(evt.target.result as string) as Snapshot;
+      console.log("Got cloud snapshot:", cloud)
+      loadState(localSnapshot, cloud);
     }
     else {
-      state = new State(null);
+      console.error("Cloud response had an unexpected format:", evt);
+      loadState(localSnapshot, null);
     }
-    render()
-  })
+  };
+  reader.onerror = function(err) {
+    console.error(err);
+    loadState(localSnapshot, null);
+  } 
+  reader.readAsText(result.fileBlob);
+
 }, (result: any) => {
   console.error("Error fetching data from cloud:")
   console.error(result)
-
-  if (localSnapshot !== null) {
-    state = new State(localSnapshot);
-  }
-  else {
-    state = new State(null);
-  }
-  render()
+  loadState(localSnapshot, null);
 });
 
 function handleKey(key: string, event: any) {

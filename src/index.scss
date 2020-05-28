@@ -6,15 +6,15 @@
 
 h1 {
     margin: 0;
-    font-size: 2.5rem;
+    font-size: 1.5rem;
 }
 h2 {
     margin: 0;
-    font-size: 2rem;
+    font-size: 1.3rem;
 }
 h3 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
 }
 body {
     text-align: justify;
@@ -27,4 +27,17 @@ pre {
 textarea {
     resize: none;
     overflow-y: hidden;
+}
+ul {
+    &:not(.browser-default) {
+      padding-left: 1.5em !important;
+      list-style-type: "- " !important;
+  
+      & > li {
+        list-style-type: "- " !important;
+      }
+    }
+  }
+b, strong {
+    font-weight: bolder !important;
 }
