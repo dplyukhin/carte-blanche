@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import RemarkMathPlugin from 'remark-math';
@@ -67,8 +67,14 @@ function ViewNote(
 
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null)
 
-  if (ref.current && props.isFocused)
-    scrollToElement(ref.current)
+  useEffect( () => {
+    if (ref.current && props.isFocused) {
+      console.log("Scrolling to", props.id)
+      setTimeout(() => {
+        scrollToElement(ref.current!)
+      }, 20)
+    }
+  })
 
   return (
     <div className={className} ref={ref}>
@@ -153,12 +159,12 @@ function Editor({state}: {state: State | null}): JSX.Element {
 
   return (
     <div className="row">
-      <div className="pinned col s3 offset-s1">
+      <div className="pinned col l3 offset-l1 m3 hide-on-small-only">
         {incoming && incoming.contents.map(function (id: ID, i: number) {
             return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
         })}
       </div>
-      <div className="col s4 offset-s4" style={{marginBottom: "20em"}}> 
+      <div className="col l4 offset-l4 m6 offset-m3 s10 offset-s1" style={{marginBottom: "20em"}}> 
         {
           Dropbox.isAuthenticated ||
           <div className="card-panel">
@@ -176,7 +182,7 @@ function Editor({state}: {state: State | null}): JSX.Element {
             return <RenderCard id={id} card={card} key={i} state={state} isFocused={isFocused} isSelected={isSelected} />
         })}
       </div>
-      <div className="pinned col s3 offset-s8">
+      <div className="pinned col l3 offset-l8 m3 offset-m9 hide-on-small-only">
         {outgoing && outgoing.contents.map(function (id: ID, i: number) {
             return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
         })}
@@ -306,4 +312,4 @@ render()
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+serviceWorker.register();
