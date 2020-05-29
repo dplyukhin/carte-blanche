@@ -1,0 +1,26 @@
+{
+  "files": {
+    "main.css": "/carte-blanche/static/css/main.a22f5cb3.chunk.css",
+    "main.js": "/carte-blanche/static/js/main.cbf7a633.chunk.js",
+    "main.js.map": "/carte-blanche/static/js/main.cbf7a633.chunk.js.map",
+    "runtime-main.js": "/carte-blanche/static/js/runtime-main.97646bd1.js",
+    "runtime-main.js.map": "/carte-blanche/static/js/runtime-main.97646bd1.js.map",
+    "static/css/2.99f9d9f7.chunk.css": "/carte-blanche/static/css/2.99f9d9f7.chunk.css",
+    "static/js/2.24bb7342.chunk.js": "/carte-blanche/static/js/2.24bb7342.chunk.js",
+    "static/js/2.24bb7342.chunk.js.map": "/carte-blanche/static/js/2.24bb7342.chunk.js.map",
+    "index.html": "/carte-blanche/index.html",
+    "precache-manifest.73ba08a62aa9c3eb3a834b669fb5015f.js": "/carte-blanche/precache-manifest.73ba08a62aa9c3eb3a834b669fb5015f.js",
+    "service-worker.js": "/carte-blanche/service-worker.js",
+    "static/css/2.99f9d9f7.chunk.css.map": "/carte-blanche/static/css/2.99f9d9f7.chunk.css.map",
+    "static/css/main.a22f5cb3.chunk.css.map": "/carte-blanche/static/css/main.a22f5cb3.chunk.css.map",
+    "static/js/2.24bb7342.chunk.js.LICENSE.txt": "/carte-blanche/static/js/2.24bb7342.chunk.js.LICENSE.txt",
+    "static/media/katex.min.css": "/carte-blanche/static/media/KaTeX_Typewriter-Regular.f43e8696.woff2"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.97646bd1.js",
+    "static/css/2.99f9d9f7.chunk.css",
+    "static/js/2.24bb7342.chunk.js",
+    "static/css/main.a22f5cb3.chunk.css",
+    "static/js/main.cbf7a633.chunk.js"
+  ]
+}
