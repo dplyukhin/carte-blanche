@@ -2,6 +2,7 @@
   "name": "dse",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://dplyukhin.github.io/carte-blanche",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
@@ -12,6 +13,7 @@
     "@types/react-dom": "^16.9.8",
     "dropbox": "^4.0.30",
     "es6-promise": "^4.2.8",
+    "gh-pages": "^2.2.0",
     "highlight.js": "^10.0.3",
     "hotkeys-js": "^3.8.1",
     "isomorphic-fetch": "^2.2.1",
@@ -35,6 +37,8 @@
     "uuid": "^8.0.0"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
