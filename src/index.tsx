@@ -9,10 +9,11 @@ import { BlockMath, InlineMath } from 'react-katex';
 import Hotkeys from 'react-hot-keys';
 import './index.scss';
 import * as serviceWorker from './serviceWorker';
-import { State, interpretKeypress, Card, Keypress, ID, Index, Note, Snapshot, DB_STRING, Cloud, CLOUD_PATH } from './model';
+import { State, interpretKeypress, Card, Keypress, ID, Index, Note, Snapshot, DB_STRING } from './model';
 import 'materialize-css/dist/js/materialize.min.js';
 import 'katex/dist/katex.min.css';
 import NoteEditor from './NoteEditor';
+import Dropbox, { AuthenticatedCloud } from './cloud';
 
 
 
@@ -136,7 +137,7 @@ function Editor({state}: {state: State | null}): JSX.Element {
   if (state === null) {
     return (
       <div className="row">
-        <div className="s3 offset-s4">
+        <div className="col s3 offset-s4">
           <div className="card-panel valign-wrapper">
             <b className="center-align">Loading...</b>
           </div>
@@ -157,7 +158,13 @@ function Editor({state}: {state: State | null}): JSX.Element {
             return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
         })}
       </div>
-      <div className="col s4 offset-s4" style={{marginBottom: "20em"}}>
+      <div className="col s4 offset-s4" style={{marginBottom: "20em"}}> 
+        {
+          Dropbox.isAuthenticated ||
+          <div className="card-panel">
+            <a href={Dropbox.authenticationURL}>Sign in to Dropbox</a>
+          </div>  
+        }
         {cards.map(function (id: ID, i: number) {
             const card = state.db[id]
             const isFocused = state.focus === i
@@ -225,55 +232,41 @@ function App() {
 
 
 let state : State | null = null;
-setInterval(() => {
-  if (state !== null)
-    state.upload()
-}, 10000)
 
-const text = localStorage.getItem(DB_STRING)
-const localSnapshot: Snapshot | null = text ? JSON.parse(text) : null
-console.log("Got snapshot from localstorage:", localSnapshot)
+// Periodically upload state to Dropbox
 
-function loadState(local: Snapshot | null, cloud: Snapshot | null) {
-  if (local === null && cloud === null) {
-    state = new State(null);
-  }
-  else if (cloud === null) {
-    state = new State(local);
-  }
-  else if (local === null || local.timestamp < cloud.timestamp) {
-    state = new State(cloud);
-  }
-  render();
+if (Dropbox.isAuthenticated) {
+  setInterval(() => {
+    if (state !== null && state.dirty)
+      (Dropbox as AuthenticatedCloud).upload(state)
+  }, 10000)
 }
 
-Cloud.filesDownload({
-  path: CLOUD_PATH
-}).then((result : any) => {
 
-  var reader = new FileReader();
-  reader.onload = function(evt) {
-    if (evt && evt.target && evt.target.result) {
-      const cloud = JSON.parse(evt.target.result as string) as Snapshot;
-      console.log("Got cloud snapshot:", cloud)
-      loadState(localSnapshot, cloud);
-    }
-    else {
-      console.error("Cloud response had an unexpected format:", evt);
-      loadState(localSnapshot, null);
-    }
-  };
-  reader.onerror = function(err) {
-    console.error(err);
-    loadState(localSnapshot, null);
-  } 
-  reader.readAsText(result.fileBlob);
+// Initialize state, checking Dropbox and localStorage
 
-}, (result: any) => {
-  console.error("Error fetching data from cloud:")
-  console.error(result)
-  loadState(localSnapshot, null);
-});
+(async function () {
+  const cloudSnapshot = Dropbox.isAuthenticated ? await Dropbox.download() : null
+  cloudSnapshot && console.log("Got cloud snapshot:", cloudSnapshot)
+
+  const text = localStorage.getItem(DB_STRING)
+  const localSnapshot = text ? JSON.parse(text) as Snapshot : null
+  console.log("Got snapshot from localstorage:", localSnapshot)
+
+  if (localSnapshot === null && cloudSnapshot === null) {
+    state = new State(null);
+  }
+  else if (cloudSnapshot === null) {
+    state = new State(localSnapshot);
+  }
+  else if (localSnapshot === null || localSnapshot.timestamp < cloudSnapshot.timestamp) {
+    state = new State(cloudSnapshot);
+  }
+
+  render();
+
+})()
+
 
 function handleKey(key: string, event: any) {
   if (state) {

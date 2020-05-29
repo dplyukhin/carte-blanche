@@ -1,13 +1,4 @@
 import { v4 as uuid } from 'uuid';
-import fetch from 'isomorphic-fetch';
-import { Dropbox } from 'dropbox';
-
-
-export const Cloud = new Dropbox({
-  fetch: fetch,
-  accessToken: 'TahCAO1x6BoAAAAAAAAM-pkDosR_tJknAEdc22YJ-3feI94jorQVVLRH5eXCO5UW'
-});
-
 
 export type ID = string
 export type Card = Note | Index
@@ -104,7 +95,6 @@ export function interpretKeypress(key: Keypress, state: State) {
 }
 
 export const DB_STRING = 'database';
-export const CLOUD_PATH = '/database.json';
 
 export type Snapshot = {
     db: Database,
@@ -153,24 +143,6 @@ export class State {
         localStorage.setItem(DB_STRING, JSON.stringify(this.snapshot))
         console.log("Saved change to local storage")
         this.dirty = true
-    }
-
-    upload() {
-        if (this.dirty) {
-            Cloud.filesUpload({
-                contents: JSON.stringify(this.snapshot),
-                path: CLOUD_PATH,
-                mode: { ".tag": 'overwrite' },
-                mute: true
-            }).then(e => {
-                console.log('Upload successful');
-                console.log(e);
-                this.dirty = false
-            }, e => {
-                console.error('Upload failed!');
-                console.error(e);
-            });
-        }
     }
 
     get focus(): number {
