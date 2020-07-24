@@ -21,6 +21,10 @@ body {
     text-justify: inter-word;
     hyphens: auto;
 }
+.edited-note {
+    text-align: left !important;
+    hyphens: none !important;
+}
 pre {
     overflow-x: auto;
 }

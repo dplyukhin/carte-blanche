@@ -45,7 +45,7 @@ function EditNote(
     scrollToElement(ref.current)
 
   return (
-    <div className="card-panel z-depth-3">
+    <div className="card-panel z-depth-3 edited-note">
       <NoteEditor note={note} id={id} updateNote={updateNote} onKeyDown={onKeyDown} />
     </div>
   )
