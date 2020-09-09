@@ -26,6 +26,7 @@ import strip from 'strip-markdown';
 async function removeFormatting(text: string): Promise<string> {
   return new Promise((resolve, reject) => {
     remark()
+      .use(RemarkMathPlugin)
       .use(strip)
       .process(text, function (err, file) {
         if (err) reject(err);
@@ -87,7 +88,13 @@ function ViewNote(
 
   useEffect( () => {
     if (ref.current && props.isFocused) {
-      console.log("Scrolling to", props.id)
+      console.log("Scrolling to", props.id);
+
+      (async () => {
+        const text = await removeFormatting(props.card.contents)
+        console.log("Contents:", text)
+      })()
+
       setTimeout(() => {
         scrollToElement(ref.current!)
       }, 20)
