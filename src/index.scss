@@ -21,6 +21,10 @@ body {
     text-justify: inter-word;
     hyphens: auto;
 }
+.edited-note {
+    text-align: left !important;
+    hyphens: none !important;
+}
 pre {
     overflow-x: auto;
 }
@@ -40,4 +44,7 @@ ul {
   }
 b, strong {
     font-weight: bolder !important;
+}
+img {
+    width: 100%;
 }

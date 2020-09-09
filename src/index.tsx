@@ -16,6 +16,24 @@ import NoteEditor from './NoteEditor';
 import Dropbox, { AuthenticatedCloud } from './cloud';
 
 
+import remark from 'remark';
+import strip from 'strip-markdown';
+
+/**
+ * Given some markdown text, return a version of that text minus formatting.
+ * @param text 
+ */
+async function removeFormatting(text: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    remark()
+      .use(strip)
+      .process(text, function (err, file) {
+        if (err) reject(err);
+        else resolve(String(file));
+      })
+  });
+}
+
 
 type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelected: boolean }
 type PreviewProps = { card: Card, id: ID, state: State }
@@ -45,7 +63,7 @@ function EditNote(
     scrollToElement(ref.current)
 
   return (
-    <div className="card-panel z-depth-3">
+    <div className="card-panel z-depth-3 edited-note">
       <NoteEditor note={note} id={id} updateNote={updateNote} onKeyDown={onKeyDown} />
     </div>
   )
@@ -259,14 +277,24 @@ if (Dropbox.isAuthenticated) {
   const localSnapshot = text ? JSON.parse(text) as Snapshot : null
   console.log("Got snapshot from localstorage:", localSnapshot)
 
+  // No previous work found... Start in the initial state.
   if (localSnapshot === null && cloudSnapshot === null) {
     state = new State(null);
   }
-  else if (cloudSnapshot === null) {
+  // Cloud backup found, with no local save. Must be logging in on a new browser or cleared the cache.
+  else if (localSnapshot === null && cloudSnapshot !== null) {
+    state = new State(cloudSnapshot);
+  }
+  // If a local copy is found with no cloud backup, then load that local state.
+  else if (localSnapshot !== null && cloudSnapshot === null) {
     state = new State(localSnapshot);
   }
-  else if (localSnapshot === null || localSnapshot.timestamp < cloudSnapshot.timestamp) {
-    state = new State(cloudSnapshot);
+  // At this point we know that both a local snapshot and a cloud snapshot exist.
+  // Load whichever one has the more recent time stamp.
+  else {
+    state = (localSnapshot!.timestamp < cloudSnapshot!.timestamp) 
+      ? new State(cloudSnapshot) 
+      : new State(localSnapshot);
   }
 
   render();
