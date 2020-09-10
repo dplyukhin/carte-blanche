@@ -14,10 +14,10 @@ import 'materialize-css/dist/js/materialize.min.js';
 import 'katex/dist/katex.min.css';
 import NoteEditor from './NoteEditor';
 import Dropbox, { AuthenticatedCloud } from './cloud';
-
-
 import remark from 'remark';
 import strip from 'strip-markdown';
+import natural from 'natural';
+import contractions from 'expand-contractions';
 
 /**
  * Given some markdown text, return a version of that text minus formatting.
@@ -33,6 +33,15 @@ async function removeFormatting(text: string): Promise<string> {
         else resolve(String(file));
       })
   });
+}
+
+/**
+ * Normalizes, tokenizes, removes stop words, and stems the given string.
+ * @param text 
+ */
+function getFeatures(text: string): string[] {
+  const expandedText = contractions.expand(text);
+  return natural.PorterStemmer.tokenizeAndStem(expandedText);
 }
 
 
@@ -92,7 +101,7 @@ function ViewNote(
 
       (async () => {
         const text = await removeFormatting(props.card.contents)
-        console.log("Contents:", text)
+        console.log("Contents:", getFeatures(text))
       })()
 
       setTimeout(() => {
