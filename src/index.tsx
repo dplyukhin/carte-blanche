@@ -144,6 +144,16 @@ function CardPreview({card, id, state}: PreviewProps): JSX.Element {
   }
 }
 
+function Search(): JSX.Element {
+  return (
+    <div className="input-field">
+      <i className="material-icons prefix">search</i>
+      <input id="icon_prefix" type="text" className="validate"/>
+      <label htmlFor="icon_prefix">Search</label>
+    </div>
+  )
+}
+
 function Editor({state}: {state: State | null}): JSX.Element {
 
   if (state === null) {
@@ -171,6 +181,7 @@ function Editor({state}: {state: State | null}): JSX.Element {
         })}
       </div>
       <div className="col l4 offset-l4 m6 offset-m3 s10 offset-s1" style={{marginBottom: "20em"}}> 
+        <Search />
         {
           Dropbox.isAuthenticated ||
           <div className="card-panel">
