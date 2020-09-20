@@ -19,6 +19,10 @@ export type Occurrences = { [key: string]: number }
  */
 export type Index = { [key: string]: Occurrences }
 
+export function newIndex(): Index {
+    return {};
+}
+
 /**
  * Given some markdown text, return a version of that text minus formatting.
  * @param text 
@@ -51,12 +55,15 @@ export function getFeatures(text: string): WordVector {
 
 export function addToIndex(id: ID, vec: WordVector, index: Index) {
     for (const [token, count] of Object.entries(vec)) {
+        if (index[token] === undefined) {
+            index[token] = {};
+        }
         index[token][id] = count;
     }
 }
 
 export function removeFromIndex(id: ID, vec: WordVector, index: Index) {
-    for (const [token, _] of Object.entries(vec)) {
+    for (const token of Object.keys(vec)) {
         delete index[token][id]
     }
 }

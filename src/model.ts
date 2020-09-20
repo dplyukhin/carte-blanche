@@ -1,4 +1,5 @@
 import { v4 as uuid } from 'uuid';
+import * as Search from './search';
 
 export type ID = string
 export type Card = Note | Index
@@ -113,6 +114,7 @@ export class State {
     clipboard: ID[]
     selection?: number
     dirty: boolean
+    index: Search.Index
 
     constructor(snapshot: Snapshot | null) {
         if (snapshot === null) {
@@ -127,7 +129,19 @@ export class State {
         this.crumbs = [[this.root, -1]]
         this.mode = 'viewing'
         this.clipboard = []
-        this.dirty = false
+        this.dirty = false;
+
+        // Build index
+        this.index = Search.newIndex();
+        const that = this;
+        (async () => {
+            for (const [id, note] of this.notes()) {
+                const text = await Search.removeFormatting(note.contents)
+                const features = Search.getFeatures(text)
+                Search.addToIndex(id, features, that.index);
+            }
+            console.log(that.index);
+        })();
 
     }
 
@@ -164,6 +178,16 @@ export class State {
     get focusedCard(): Card | undefined {
         // This is undefined when the focus is -1
         return this.focusedCardID ? this.db[this.focusedCardID] : undefined
+    }
+    * notes(): Generator<[ID, Note]> {
+        for (const id in this.db) {
+            if (Object.prototype.hasOwnProperty.call(this.db, id)) {
+                const card = this.db[id];
+                if (card.type === 'note') {
+                    yield [id, card];
+                }
+            }
+        }
     }
 
     // NAVIGATION
