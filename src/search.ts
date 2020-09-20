@@ -50,6 +50,10 @@ export function getFeatures(text: string): WordVector {
   for (const token of tokens) {
       vec[token] = vec[token] === undefined ? 1 : vec[token] + 1;
   }
+  // Normalize
+  for (const token of Object.keys(vec)) {
+      vec[token] = vec[token] / tokens.length
+  }
   return vec;
 }
 
@@ -81,6 +85,20 @@ export async function removeFromIndex(id: ID, contents: string, index: Index) {
     const text = await removeFormatting(contents)
     const features = getFeatures(text)
     removeVecFromIndex(id, features, index);
+}
+
+/**
+ * Computes the similarity of two vectors v1, v2 by taking the dot product.
+ * @return A number between 0 and 1; higher is more similar
+ */
+export function cosineSimilarity(vec1: WordVector, vec2: WordVector): number {
+    let numerator = 0
+    // Note that we only need to iterate over the keys of *one* of the vectors
+    for (const token of Object.keys(vec1)) {
+        numerator += (vec1[token] || 0) * (vec2[token] || 0)
+    } 
+    // Since we know both vectors are normalized, the denominator is 0
+    return numerator;
 }
 
 // /**
