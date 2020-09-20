@@ -91,22 +91,45 @@ export async function removeFromIndex(id: ID, contents: string, index: Index) {
  * Computes the similarity of two vectors v1, v2 by taking the dot product.
  * @return A number between 0 and 1; higher is more similar
  */
-export function cosineSimilarity(vec1: WordVector, vec2: WordVector): number {
+function cosineSimilarity(vec1: WordVector, vec2: WordVector): number {
     let numerator = 0
     // Note that we only need to iterate over the keys of *one* of the vectors
     for (const token of Object.keys(vec1)) {
         numerator += (vec1[token] || 0) * (vec2[token] || 0)
     } 
-    // Since we know both vectors are normalized, the denominator is 0
+    // Since we know both vectors are normalized, the denominator is 1
     return numerator;
 }
 
-// /**
-//  * Gets a sorted list of IDs 
-//  */
-// export function get(token: string, index: Index): ID[] {
-//     const occurrences = index[token]
-//     return Object.entries(occurrences)
-//         .sort((e1, e2) => e2[1] - e1[1])
-//         .map(([s, _]) => s)
-// }
+export function search(queryString: string, index: Index): ID[] {
+    const query = getFeatures(queryString);
+    if (Object.keys(query).length == 0) return [];
+
+    // We now reconstruct a projection of each document's word vector, only
+    // counting the words that are already in our query.
+
+    // E.g., query = {additive: 0.5, monad: 0.5} and
+    // index = { additive: {"doc": 0.2, ...}, monad: {"doc": 0.5, ...}, ... }
+    // then documents["doc"] = {additive: 0.2, monad: 0.5}.
+    const documents: Map<ID, WordVector> = new Map();
+    for (const token of Object.keys(query)) {
+        const occurrences = index[token] || {}
+        for (const [id, weight] of Object.entries(occurrences)) {
+            const vec = documents.get(id) || {};
+            vec[token] = weight;
+            documents.set(id, vec)
+        }
+    }
+    // console.log("Reconstructed vectors:", documents)
+
+    // Assign each ID with a similarity score
+    const similarity: [ID, number][] = []
+    for (const [id, vec] of documents.entries()) {
+        similarity.push([id, cosineSimilarity(query, vec)])
+    }
+    // Sort by score, descending
+    similarity.sort((a,b) => b[1] - a[1])
+    // console.log("Similarity scores:", similarity)
+
+    return similarity.map(([id, _]) => id)
+}

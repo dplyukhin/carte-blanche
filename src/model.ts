@@ -136,8 +136,11 @@ export class State {
         for (const [id, note] of this.notes()) {
             Search.addToIndex(id, note.contents, this.index);
         }
-        console.log(this.index);
 
+        // // Test
+        // setTimeout(() => {
+        //     console.log(Search.search({neural: 0.5, network: 0.5}, this.index))
+        // }, 5000);
     }
 
     get snapshot(): Snapshot {
