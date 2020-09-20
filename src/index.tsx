@@ -15,6 +15,7 @@ import 'katex/dist/katex.min.css';
 import NoteEditor from './NoteEditor';
 import Dropbox, { AuthenticatedCloud } from './cloud';
 import { getFeatures, removeFormatting } from './search';
+import logo from './logo.jpeg';
 
 
 type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelected: boolean }
@@ -176,6 +177,7 @@ function Editor({state}: {state: State | null}): JSX.Element {
   return (
     <div className="row">
       <div className="pinned col l3 offset-l1 m3 hide-on-small-only">
+        <img src={logo} style={{display: "block", margin: "auto", width: "50%"}} />
         {incoming && incoming.contents.map(function (id: ID, i: number) {
             return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
         })}
