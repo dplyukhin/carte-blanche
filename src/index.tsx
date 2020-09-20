@@ -14,35 +14,7 @@ import 'materialize-css/dist/js/materialize.min.js';
 import 'katex/dist/katex.min.css';
 import NoteEditor from './NoteEditor';
 import Dropbox, { AuthenticatedCloud } from './cloud';
-import remark from 'remark';
-import strip from 'strip-markdown';
-import natural from 'natural';
-import contractions from 'expand-contractions';
-
-/**
- * Given some markdown text, return a version of that text minus formatting.
- * @param text 
- */
-async function removeFormatting(text: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    remark()
-      .use(RemarkMathPlugin)
-      .use(strip)
-      .process(text, function (err, file) {
-        if (err) reject(err);
-        else resolve(String(file));
-      })
-  });
-}
-
-/**
- * Normalizes, tokenizes, removes stop words, and stems the given string.
- * @param text 
- */
-function getFeatures(text: string): string[] {
-  const expandedText = contractions.expand(text);
-  return natural.PorterStemmer.tokenizeAndStem(expandedText);
-}
+import { getFeatures, removeFormatting } from './search';
 
 
 type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelected: boolean }
