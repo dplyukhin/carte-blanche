@@ -133,15 +133,10 @@ export class State {
 
         // Build index
         this.index = Search.newIndex();
-        const that = this;
-        (async () => {
-            for (const [id, note] of this.notes()) {
-                const text = await Search.removeFormatting(note.contents)
-                const features = Search.getFeatures(text)
-                Search.addToIndex(id, features, that.index);
-            }
-            console.log(that.index);
-        })();
+        for (const [id, note] of this.notes()) {
+            Search.addToIndex(id, note.contents, this.index);
+        }
+        console.log(this.index);
 
     }
 
@@ -230,6 +225,16 @@ export class State {
 
     // MUTATION
 
+    updateNote(id : ID, contents : string): boolean {
+        const note = this.db[id]
+        if (note && note.type === 'note') {
+            note.contents = contents
+            return true
+        }
+        else {
+            return false
+        }
+    }
     insertAfter(focus: number, id: ID) {
         this.currentIndex.contents.splice(focus + 1, 0, id)
 

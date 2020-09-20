@@ -303,13 +303,11 @@ function handleKey(key: string, event: any) {
 
 function updateNote(id : ID, contents : string) {
   if (state) {
-    const note = state.db[id]
-    if (note.type === 'note') {
-      note.contents = contents
+    if (state.updateNote(id, contents)) {
       render()
     }
     else {
-      throw Error(`Cannot update card ${id}: not a note`)
+      console.error(`Cannot update card ${id}: not a note`)
     }
   }
 }

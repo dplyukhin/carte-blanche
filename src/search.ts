@@ -53,7 +53,7 @@ export function getFeatures(text: string): WordVector {
   return vec;
 }
 
-export function addToIndex(id: ID, vec: WordVector, index: Index) {
+function addVecToIndex(id: ID, vec: WordVector, index: Index) {
     for (const [token, count] of Object.entries(vec)) {
         if (index[token] === undefined) {
             index[token] = {};
@@ -62,10 +62,25 @@ export function addToIndex(id: ID, vec: WordVector, index: Index) {
     }
 }
 
-export function removeFromIndex(id: ID, vec: WordVector, index: Index) {
+function removeVecFromIndex(id: ID, vec: WordVector, index: Index) {
     for (const token of Object.keys(vec)) {
-        delete index[token][id]
+        if (index[token] !== undefined) {
+            console.log("Deleting", token, "with count", index[token][id])
+            delete index[token][id]
+        }
     }
+}
+
+export async function addToIndex(id: ID, contents: string, index: Index) {
+    const text = await removeFormatting(contents)
+    const features = getFeatures(text)
+    addVecToIndex(id, features, index);
+}
+
+export async function removeFromIndex(id: ID, contents: string, index: Index) {
+    const text = await removeFormatting(contents)
+    const features = getFeatures(text)
+    removeVecFromIndex(id, features, index);
 }
 
 // /**
