@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { createEditor, Node } from 'slate'
 import { Slate, Editable, withReact } from 'slate-react'
 import { withHistory } from 'slate-history'
@@ -11,14 +11,16 @@ type Props = {
   onKeyDown: (e: React.KeyboardEvent) => void
 }
 const NoteEditor = (props: Props) => {
+  const [value, setValue] = useState<Node[]>(deserialize(props.note.contents))
   const editor = useMemo(() => withHistory(withReact(createEditor())), [])
 
   function onChange(value: Node[]) {
+    setValue(value)
     props.updateNote(props.id, serialize(value))
   }
 
   return (
-    <Slate editor={editor} value={deserialize(props.note.contents)} onChange={onChange}>
+    <Slate editor={editor} value={value} onChange={onChange}>
       <Editable autoFocus 
         onKeyDown={props.onKeyDown} 
         placeholder="Enter some text..." 
