@@ -147,5 +147,5 @@ export function search(queryString: string, index: Index): ID[] {
     similarity.sort((a,b) => b[1] - a[1])
     // console.log("Similarity scores:", similarity)
 
-    return similarity.map(([id, _]) => id).slice(0,50)
+    return similarity.map(([id, _]) => id).slice(0,30)
 }
