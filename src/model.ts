@@ -228,6 +228,14 @@ export class State {
 
     // MUTATION
 
+    search(query: string) {
+        const results = Search.search(query, this.index)
+        const id = this.newIndex()
+        const index = this.db[id]!
+        index.contents = results
+        this.enter(id)
+        this.save()
+    }
     updateNote(id : ID, contents : string): boolean {
         const note = this.db[id]
         if (note && note.type === 'note') {

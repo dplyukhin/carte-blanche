@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import RemarkMathPlugin from 'remark-math';
@@ -145,13 +145,26 @@ function CardPreview({card, id, state}: PreviewProps): JSX.Element {
   }
 }
 
-function Search(): JSX.Element {
+function Search({state}: {state: State | null}): JSX.Element {
+  const [query, setQuery] = useState("");
+  const ref: React.MutableRefObject<HTMLInputElement | null> = useRef(null)
+
+  function onSubmit(event: React.SyntheticEvent) {
+    event.preventDefault()
+    if (state) {
+      state.search(query)
+      render()
+      if (ref.current) ref.current.blur()
+    }
+  }
+
   return (
-    <div className="input-field">
+    <form className="input-field" onSubmit={onSubmit}>
       <i className="material-icons prefix">search</i>
-      <input id="icon_prefix" type="text" className="validate"/>
+      <input id="icon_prefix" type="text" ref={ref}
+        onChange={ e => setQuery(e.target.value) } />
       <label htmlFor="icon_prefix">Search</label>
-    </div>
+    </form>
   )
 }
 
@@ -183,7 +196,7 @@ function Editor({state}: {state: State | null}): JSX.Element {
         })}
       </div>
       <div className="col l4 offset-l4 m6 offset-m3 s10 offset-s1" style={{marginBottom: "20em"}}> 
-        <Search />
+        <Search state={state} />
         {
           Dropbox.isAuthenticated ||
           <div className="card-panel">
