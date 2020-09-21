@@ -101,6 +101,22 @@ function cosineSimilarity(vec1: WordVector, vec2: WordVector): number {
     return numerator;
 }
 
+/**
+ * Computes the similarity between its inputs.
+ * This function is similar to `cosineSimilarity`, but we make sure that
+ * a note that matches N keywords always outranks a note matching M < N keywords
+ */
+function rankedCosineSimilarity(vec1: WordVector, vec2: WordVector): number {
+    let intersectCount = 0
+    for (const token of Object.keys(vec1)) {
+        if (Object.keys(vec2).includes(token)) {
+            intersectCount += 1
+        }
+
+    }
+    return intersectCount + cosineSimilarity(vec1, vec2)
+}
+
 export function search(queryString: string, index: Index): ID[] {
     const query = getFeatures(queryString);
     if (Object.keys(query).length == 0) return [];
@@ -125,11 +141,11 @@ export function search(queryString: string, index: Index): ID[] {
     // Assign each ID with a similarity score
     const similarity: [ID, number][] = []
     for (const [id, vec] of documents.entries()) {
-        similarity.push([id, cosineSimilarity(query, vec)])
+        similarity.push([id, rankedCosineSimilarity(query, vec)])
     }
     // Sort by score, descending
     similarity.sort((a,b) => b[1] - a[1])
     // console.log("Similarity scores:", similarity)
 
-    return similarity.map(([id, _]) => id)
+    return similarity.map(([id, _]) => id).slice(0,50)
 }
