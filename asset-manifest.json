@@ -1,26 +1,27 @@
 {
   "files": {
-    "main.css": "/carte-blanche/static/css/main.4d55d4dc.chunk.css",
-    "main.js": "/carte-blanche/static/js/main.2cb1d935.chunk.js",
-    "main.js.map": "/carte-blanche/static/js/main.2cb1d935.chunk.js.map",
-    "runtime-main.js": "/carte-blanche/static/js/runtime-main.97646bd1.js",
-    "runtime-main.js.map": "/carte-blanche/static/js/runtime-main.97646bd1.js.map",
+    "main.css": "/carte-blanche/static/css/main.184f96f6.chunk.css",
+    "main.js": "/carte-blanche/static/js/main.1dfa2683.chunk.js",
+    "main.js.map": "/carte-blanche/static/js/main.1dfa2683.chunk.js.map",
+    "runtime-main.js": "/carte-blanche/static/js/runtime-main.3ab08da7.js",
+    "runtime-main.js.map": "/carte-blanche/static/js/runtime-main.3ab08da7.js.map",
     "static/css/2.99f9d9f7.chunk.css": "/carte-blanche/static/css/2.99f9d9f7.chunk.css",
-    "static/js/2.f14fa54e.chunk.js": "/carte-blanche/static/js/2.f14fa54e.chunk.js",
-    "static/js/2.f14fa54e.chunk.js.map": "/carte-blanche/static/js/2.f14fa54e.chunk.js.map",
+    "static/js/2.313b453f.chunk.js": "/carte-blanche/static/js/2.313b453f.chunk.js",
+    "static/js/2.313b453f.chunk.js.map": "/carte-blanche/static/js/2.313b453f.chunk.js.map",
     "index.html": "/carte-blanche/index.html",
-    "precache-manifest.7f80cacad0d392562d9295a20c4cf1d0.js": "/carte-blanche/precache-manifest.7f80cacad0d392562d9295a20c4cf1d0.js",
+    "precache-manifest.6d47094f200f915b5642c38dfd6a79a3.js": "/carte-blanche/precache-manifest.6d47094f200f915b5642c38dfd6a79a3.js",
     "service-worker.js": "/carte-blanche/service-worker.js",
     "static/css/2.99f9d9f7.chunk.css.map": "/carte-blanche/static/css/2.99f9d9f7.chunk.css.map",
-    "static/css/main.4d55d4dc.chunk.css.map": "/carte-blanche/static/css/main.4d55d4dc.chunk.css.map",
-    "static/js/2.f14fa54e.chunk.js.LICENSE.txt": "/carte-blanche/static/js/2.f14fa54e.chunk.js.LICENSE.txt",
-    "static/media/katex.min.css": "/carte-blanche/static/media/KaTeX_Typewriter-Regular.f43e8696.woff2"
+    "static/css/main.184f96f6.chunk.css.map": "/carte-blanche/static/css/main.184f96f6.chunk.css.map",
+    "static/js/2.313b453f.chunk.js.LICENSE.txt": "/carte-blanche/static/js/2.313b453f.chunk.js.LICENSE.txt",
+    "static/media/katex.min.css": "/carte-blanche/static/media/KaTeX_Typewriter-Regular.f43e8696.woff2",
+    "static/media/logo.jpeg": "/carte-blanche/static/media/logo.743a2742.jpeg"
   },
   "entrypoints": [
-    "static/js/runtime-main.97646bd1.js",
+    "static/js/runtime-main.3ab08da7.js",
     "static/css/2.99f9d9f7.chunk.css",
-    "static/js/2.f14fa54e.chunk.js",
-    "static/css/main.4d55d4dc.chunk.css",
-    "static/js/main.2cb1d935.chunk.js"
+    "static/js/2.313b453f.chunk.js",
+    "static/css/main.184f96f6.chunk.css",
+    "static/js/main.1dfa2683.chunk.js"
   ]
 }
