@@ -14,7 +14,6 @@ import 'materialize-css/dist/js/materialize.min.js';
 import 'katex/dist/katex.min.css';
 import NoteEditor from './NoteEditor';
 import Dropbox, { AuthenticatedCloud } from './cloud';
-import { getFeatures, removeFormatting } from './search';
 import logo from './logo.jpeg';
 
 
@@ -71,11 +70,6 @@ function ViewNote(
   useEffect( () => {
     if (ref.current && props.isFocused) {
       console.log("Scrolling to", props.id);
-
-      (async () => {
-        const text = await removeFormatting(props.card.contents)
-        console.log("Contents:", getFeatures(text))
-      })()
 
       setTimeout(() => {
         scrollToElement(ref.current!)
@@ -359,3 +353,11 @@ render()
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.register();
+
+window.onpopstate = function (e: any) {
+  console.log("Entered index " + window.location.hash + " focus " + e.state.focus)
+  if (state) {
+    state.view(window.location.hash.slice(1), e.state.focus)
+    render()
+  }
+}

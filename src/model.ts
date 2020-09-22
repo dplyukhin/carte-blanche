@@ -126,7 +126,14 @@ export class State {
             this.root = snapshot.root
             this.db = snapshot.db
         }
-        this.crumbs = [[this.root, -1]]
+        if (window.location.hash !== "") {
+            const currentIndex = window.location.hash.slice(1)
+            const focus = window.history.state.focus || -1
+            this.crumbs = [[currentIndex, focus]]
+        }
+        else {
+            this.crumbs = [[this.root, -1]]
+        }
         this.mode = 'viewing'
         this.clipboard = []
         this.dirty = false;
@@ -166,6 +173,9 @@ export class State {
     get currentIndexID(): ID {
         return this.crumbs[this.crumbs.length - 1][0]
     }
+    set currentIndexID(id: ID) {
+        this.crumbs[this.crumbs.length - 1][0] = id
+    }
     get currentIndex(): Index {
         return this.db[this.currentIndexID] as Index
     }
@@ -190,6 +200,10 @@ export class State {
 
     // NAVIGATION
 
+    view(id: ID, focus: number) {
+        this.currentIndexID = id;
+        this.focus = focus === undefined ? -1 : focus
+    }
     enter(id: ID) {
         let focus
         if (this.db[id].contents.length > 0) {
@@ -198,12 +212,12 @@ export class State {
         else {
             focus = -1
         }
-        this.crumbs.push([id, focus])
+        window.history.replaceState({ focus: this.focus }, "", "#" + this.currentIndexID);
+        window.history.pushState({focus: focus}, "", "#" + id);
+        this.view(id, focus)
     }
     exit() {
-        if (this.crumbs.length > 1) {
-            this.crumbs.pop()
-        }
+        window.history.back()
     }
     goUp() {
         // The behavior in 'selecting' mode and 'viewing' mode is
