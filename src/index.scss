@@ -50,3 +50,20 @@ b, strong {
 img {
     width: 100%;
 }
+
+#logo {
+    display: block; 
+    margin: auto; 
+    width: 50%;
+}
+#main-panel {
+    margin-bottom: 20em;
+}
+#left-panel {
+    overflow-y: auto;
+    height: 100%;
+}
+#right-panel {
+    overflow-y: auto;
+    height: 100%;
+}

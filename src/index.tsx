@@ -157,12 +157,18 @@ function Search({state}: {state: State | null}): JSX.Element {
       if (ref.current) ref.current.blur()
     }
   }
+  function onKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape') {
+      if (ref.current) ref.current.blur()
+    }
+  }
 
   return (
     <form className="input-field" onSubmit={onSubmit}>
       <i className="material-icons prefix">search</i>
       <input id="icon_prefix" type="text" ref={ref}
-        onChange={ e => setQuery(e.target.value) } />
+        onChange={ e => setQuery(e.target.value) } 
+        onKeyDown={onKeyDown} />
       <label htmlFor="icon_prefix">Search</label>
     </form>
   )
@@ -189,13 +195,13 @@ function Editor({state}: {state: State | null}): JSX.Element {
 
   return (
     <div className="row">
-      <div className="pinned col l3 offset-l1 m3 hide-on-small-only">
-        <img src={logo} style={{display: "block", margin: "auto", width: "50%"}} />
+      <div id="left-panel" className="pinned col l3 offset-l1 m3 hide-on-small-only">
+        <img id="logo" src={logo} />
         {incoming && incoming.contents.map(function (id: ID, i: number) {
             return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
         })}
       </div>
-      <div className="col l4 offset-l4 m6 offset-m3 s10 offset-s1" style={{marginBottom: "20em"}}> 
+      <div id="main-panel" className="col l4 offset-l4 m6 offset-m3 s10 offset-s1"> 
         <Search state={state} />
         {
           Dropbox.isAuthenticated ||
@@ -214,7 +220,7 @@ function Editor({state}: {state: State | null}): JSX.Element {
             return <RenderCard id={id} card={card} key={i} state={state} isFocused={isFocused} isSelected={isSelected} />
         })}
       </div>
-      <div className="pinned col l3 offset-l8 m3 offset-m9 hide-on-small-only">
+      <div id="right-panel" className="pinned col l3 offset-l8 m3 offset-m9 hide-on-small-only">
         {outgoing && outgoing.contents.map(function (id: ID, i: number) {
             return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
         })}
