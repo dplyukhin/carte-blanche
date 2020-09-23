@@ -9,7 +9,7 @@ import { BlockMath, InlineMath } from 'react-katex';
 import Hotkeys from 'react-hot-keys';
 import './index.scss';
 import * as serviceWorker from './serviceWorker';
-import { State, interpretKeypress, Card, Keypress, ID, Index, Note, Snapshot, DB_STRING } from './model';
+import { State, interpretKeypress, Card, Keypress, ID, Index, Note, Snapshot, DB_STRING, Mode } from './model';
 import 'materialize-css/dist/js/materialize.min.js';
 import 'katex/dist/katex.min.css';
 import NoteEditor from './NoteEditor';
@@ -17,7 +17,7 @@ import Dropbox, { AuthenticatedCloud } from './cloud';
 import logo from './logo.jpeg';
 
 
-type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelected: boolean }
+type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelected: boolean, mode: Mode }
 type PreviewProps = { card: Card, id: ID, state: State }
 
 function onKeyDown(e: React.KeyboardEvent) {
@@ -89,7 +89,7 @@ function ViewNote(
   )
 }
 
-function RenderCard(props: CardProps): JSX.Element {
+const RenderCard = React.memo((props: CardProps): JSX.Element => {
   const {card, id, state, isFocused} = props;
 
   if (card.type === 'index') {
@@ -112,9 +112,9 @@ function RenderCard(props: CardProps): JSX.Element {
       )
     }
   }
-}
+})
 
-function CardPreview({card, id, state}: PreviewProps): JSX.Element {
+const CardPreview = React.memo(({card, id, state}: PreviewProps): JSX.Element => {
   if (card.type === 'index') {
     return (
       <div className="card-panel truncate">
@@ -138,7 +138,7 @@ function CardPreview({card, id, state}: PreviewProps): JSX.Element {
       </div>
     )
   }
-}
+})
 
 function Search({state}: {state: State | null}): JSX.Element {
   const [query, setQuery] = useState("");
@@ -212,7 +212,7 @@ function Editor({state}: {state: State | null}): JSX.Element {
               (state.focus >= i && i >= state.selection!))
 
 
-            return <RenderCard id={id} card={card} key={i} state={state} isFocused={isFocused} isSelected={isSelected} />
+            return <RenderCard id={id} card={card} key={i} state={state} isFocused={isFocused} isSelected={isSelected} mode={state.mode} />
         })}
       </div>
       <div id="right-panel" className="pinned col l3 offset-l8 m3 offset-m9 hide-on-small-only">

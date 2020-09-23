@@ -22,6 +22,8 @@ export type Keypress
     | 'copy' | 'paste' | 'cut' | 'undo' | 'redo'
     | 'shift+down' | 'shift+up'
 
+export type Mode = 'viewing' | 'editing' | 'selecting'
+
 export function interpretKeypress(key: Keypress, state: State) {
     if (state.mode === 'viewing') {
         if (key === 'enter' && state.focus >= 0) {
@@ -112,7 +114,7 @@ export class State {
     // Temporary state
     currentIndexID: ID
     focus: number
-    mode: 'viewing' | 'editing' | 'selecting'
+    mode: Mode
     clipboard: ID[]
     selection?: number
     dirty: boolean
@@ -235,12 +237,22 @@ export class State {
     updateNote(id : ID, contents : string): boolean {
         const note = this.db[id]
         if (note && note.type === 'note') {
-            note.contents = contents
+            this.db[id] = {...note, contents}
             return true
         }
         else {
             return false
         }
+    }
+    /** Helper method for updating indexes immutably.
+     * Passes a deep copy of the index with ID `id` to the `update` function
+     * then stores the new object back in the database.
+     */
+    updateIndex(id: ID, update: (index: Index) => void) {
+        const note: Index = this.db[id] as Index
+        const copy: Index = { type: 'index', contents: note.contents.slice() }
+        update(copy)
+        this.db[id] = copy
     }
     insertAfter(focus: number, id: ID) {
         this.currentIndex.contents.splice(focus + 1, 0, id)
@@ -250,19 +262,28 @@ export class State {
         const indexID = this.currentIndexID;
         if (indexID.endsWith("-outgoing")) {
             const note : ID = indexID.substr(0, indexID.length - 9)
-            const incomingIndex = this.db[id + "-incoming"] as Index
-            incomingIndex.contents.push(note)
+
+            this.updateIndex(id + "-incoming", (index) => {
+                index.contents.push(note)
+            })
         }
         if (indexID.endsWith("-incoming")) {
             const note : ID = indexID.substr(0, indexID.length - 9)
-            const outgoingIndex = this.db[id + "-outgoing"] as Index
-            outgoingIndex.contents.push(note)
+
+            this.updateIndex(id + "-outgoing", (index) => {
+                index.contents.push(note)
+            })
         }
         this.save()
     }
     remove(focus: number) {
         const id = this.currentIndex.contents[focus]
-        this.currentIndex.contents.splice(focus, 1)
+
+        // Remove the focused element from the index
+        this.updateIndex(this.currentIndexID, (index) => {
+            index.contents.splice(focus, 1)
+        })
+
         // Update the focus if it's now out of bounds
         if (this.focus > this.currentIndex.contents.length - 1) {
             this.focus = this.focus - 1
@@ -274,15 +295,19 @@ export class State {
         const indexID = this.currentIndexID;
         if (indexID.endsWith("-outgoing")) {
             const note : ID = indexID.substr(0, indexID.length - 9)
-            const incomingIndex = this.db[id + "-incoming"] as Index
-            const focus = incomingIndex.contents.findIndex(x => x === note)
-            incomingIndex.contents.splice(focus, 1)
+
+            this.updateIndex(id + "-incoming", (index) => {
+                const focus = index.contents.findIndex(x => x === note)
+                index.contents.splice(focus, 1)
+            })
         }
         if (indexID.endsWith("-incoming")) {
             const note : ID = indexID.substr(0, indexID.length - 9)
-            const outgoingIndex = this.db[id + "-outgoing"] as Index
-            const focus = outgoingIndex.contents.findIndex(x => x === note)
-            outgoingIndex.contents.splice(focus, 1)
+
+            this.updateIndex(id + "-outgoing", (index) => {
+                const focus = index.contents.findIndex(x => x === note)
+                index.contents.splice(focus, 1)
+            })
         }
         this.save()
     }
