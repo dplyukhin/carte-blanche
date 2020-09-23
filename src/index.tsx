@@ -68,11 +68,12 @@ function ViewNote(
   const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null)
 
   useEffect( () => {
-    if (ref.current && props.isFocused) {
+    const el = ref.current
+    if (el && props.isFocused) {
       console.log("Scrolling to", props.id);
 
       setTimeout(() => {
-        scrollToElement(ref.current!)
+        scrollToElement(el)
       }, 20)
     }
   })
@@ -190,7 +191,7 @@ function Editor({state}: {state: State | null}): JSX.Element {
   return (
     <div className="row">
       <div id="left-panel" className="pinned col l3 offset-l1 m3 hide-on-small-only">
-        <img id="logo" src={logo} />
+        <a href="/"><img id="logo" src={logo} alt="Go home" /></a>
         {incoming && incoming.contents.map(function (id: ID, i: number) {
             return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
         })}
@@ -235,7 +236,7 @@ const keymap : { [key: string] : Keypress} = {
   'left': 'left',
   'up': 'up',
   'down': 'down',
-  'Escape': 'escape',
+  'Escape': 'back',
   'Backspace': 'backspace',
   'shift+down': 'shift+down',
   'shift+up': 'shift+up',
@@ -244,6 +245,8 @@ const keymap : { [key: string] : Keypress} = {
   'k': 'up',
   'h': 'left',
   'l': 'right',
+  'shift+h': 'back',
+  'shift+l': 'forward',
   'u': 'undo',
   'ctrl+r': 'redo',
   'y': 'copy',
@@ -347,17 +350,17 @@ function render() {
   );  
 }
 
-render()
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.register();
-
-window.onpopstate = function (e: any) {
+window.onpopstate = function (e: PopStateEvent) {
   console.log("Entered index " + window.location.hash + " focus " + e.state.focus)
   if (state) {
     state.view(window.location.hash.slice(1), e.state.focus)
     render()
   }
 }
+
+render()
+
+// If you want your app to work offline and load faster, you can change
+// unregister() to register() below. Note this comes with some pitfalls.
+// Learn more about service workers: https://bit.ly/CRA-PWA
+serviceWorker.register();

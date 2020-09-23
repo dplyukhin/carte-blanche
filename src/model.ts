@@ -16,11 +16,9 @@ export type Index = {
 
 type Database = { [key: string]: Card }
 
-type Breadcrumbs = [ID, number][]
-
 export type Keypress 
     = 'enter' | 'escape' | 'space' | 'shift+space' | 'backspace'
-    | 'left' | 'right' | 'up' | 'down' 
+    | 'left' | 'right' | 'up' | 'down' | 'back' | 'forward'
     | 'copy' | 'paste' | 'cut' | 'undo' | 'redo'
     | 'shift+down' | 'shift+up'
 
@@ -29,8 +27,11 @@ export function interpretKeypress(key: Keypress, state: State) {
         if (key === 'enter' && state.focus >= 0) {
             state.mode = 'editing'
         }
-        else if (key === 'escape') {
-            state.exit()
+        else if (key === 'back') {
+            state.goBack()
+        }
+        else if (key === 'forward') {
+            state.goForward()
         }
         else if (key === 'space') {
             const note = state.newNote()
@@ -109,7 +110,8 @@ export class State {
     root: ID
 
     // Temporary state
-    crumbs: Breadcrumbs
+    currentIndexID: ID
+    focus: number
     mode: 'viewing' | 'editing' | 'selecting'
     clipboard: ID[]
     selection?: number
@@ -127,12 +129,12 @@ export class State {
             this.db = snapshot.db
         }
         if (window.location.hash !== "") {
-            const currentIndex = window.location.hash.slice(1)
-            const focus = window.history.state.focus || -1
-            this.crumbs = [[currentIndex, focus]]
+            this.currentIndexID = window.location.hash.slice(1)
+            this.focus = window.history.state.focus || -1
         }
         else {
-            this.crumbs = [[this.root, -1]]
+            this.currentIndexID = this.root 
+            this.focus = -1
         }
         this.mode = 'viewing'
         this.clipboard = []
@@ -143,11 +145,6 @@ export class State {
         for (const [id, note] of this.notes()) {
             Search.addToIndex(id, note.contents, this.index);
         }
-
-        // // Test
-        // setTimeout(() => {
-        //     console.log(Search.search({neural: 0.5, network: 0.5}, this.index))
-        // }, 5000);
     }
 
     get snapshot(): Snapshot {
@@ -164,18 +161,6 @@ export class State {
         this.dirty = true
     }
 
-    get focus(): number {
-        return this.crumbs[this.crumbs.length - 1][1]
-    }
-    set focus(focus: number) {
-        this.crumbs[this.crumbs.length - 1][1] = focus
-    }
-    get currentIndexID(): ID {
-        return this.crumbs[this.crumbs.length - 1][0]
-    }
-    set currentIndexID(id: ID) {
-        this.crumbs[this.crumbs.length - 1][0] = id
-    }
     get currentIndex(): Index {
         return this.db[this.currentIndexID] as Index
     }
@@ -205,19 +190,16 @@ export class State {
         this.focus = focus === undefined ? -1 : focus
     }
     enter(id: ID) {
-        let focus
-        if (this.db[id].contents.length > 0) {
-            focus = 0
-        }
-        else {
-            focus = -1
-        }
+        const focus = this.db[id].contents.length > 0 ? 0 : -1;
         window.history.replaceState({ focus: this.focus }, "", "#" + this.currentIndexID);
         window.history.pushState({focus: focus}, "", "#" + id);
         this.view(id, focus)
     }
-    exit() {
+    goBack() {
         window.history.back()
+    }
+    goForward() {
+        window.history.forward()
     }
     goUp() {
         // The behavior in 'selecting' mode and 'viewing' mode is

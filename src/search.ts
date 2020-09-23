@@ -119,7 +119,7 @@ function rankedCosineSimilarity(vec1: WordVector, vec2: WordVector): number {
 
 export function search(queryString: string, index: Index): ID[] {
     const query = getFeatures(queryString);
-    if (Object.keys(query).length == 0) return [];
+    if (Object.keys(query).length === 0) return [];
 
     // We now reconstruct a projection of each document's word vector, only
     // counting the words that are already in our query.
