@@ -31,6 +31,7 @@
     "remark": "^12.0.1",
     "remark-highlight.js": "^6.0.0",
     "remark-math": "^2.0.1",
+    "seamless-scroll-polyfill": "^1.2.2",
     "slate": "^0.58.1",
     "slate-history": "^0.58.1",
     "slate-markdown": "^0.1.1",

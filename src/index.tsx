@@ -15,6 +15,8 @@ import 'katex/dist/katex.min.css';
 import NoteEditor from './NoteEditor';
 import Dropbox, { AuthenticatedCloud } from './cloud';
 import logo from './logo.jpeg';
+import * as smoothscroll from 'seamless-scroll-polyfill';
+smoothscroll.polyfill();
 
 
 type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelected: boolean, mode: Mode }

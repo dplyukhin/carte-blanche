@@ -10523,6 +10523,11 @@ scss-tokenizer@^0.2.3:
     js-base64 "^2.1.8"
     source-map "^0.4.2"
 
+seamless-scroll-polyfill@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/seamless-scroll-polyfill/-/seamless-scroll-polyfill-1.2.2.tgz#16a5c7fd3f1682ddaf1ba967e36d4001ee2baf70"
+  integrity sha512-FW+rj6PKDYHGP7c7M26+/ZE8baebU6ai4S861dU3WTp9tDnxc7pEqDCjGe45WClRQP3g4SMFUaPECz0vwLeyWw==
+
 select-hose@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/select-hose/-/select-hose-2.0.0.tgz#625d8658f865af43ec962bfc376a37359a4994ca"
