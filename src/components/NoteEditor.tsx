@@ -2,21 +2,23 @@ import React, { useMemo, useState } from 'react'
 import { createEditor, Node } from 'slate'
 import { Slate, Editable, withReact } from 'slate-react'
 import { withHistory } from 'slate-history'
-import { Note, ID } from './model'
+import { Note, ID } from '../model'
+import { Action } from '../actions'
 
 type Props = { 
   note: Note, 
   id: ID, 
-  updateNote: (id : ID, contents : string) => void,
+  dispatch(action: Action): void,
   onKeyDown: (e: React.KeyboardEvent) => void
 }
+
 const NoteEditor = (props: Props) => {
   const [value, setValue] = useState<Node[]>(deserialize(props.note.contents))
   const editor = useMemo(() => withHistory(withReact(createEditor())), [])
 
   function onChange(value: Node[]) {
     setValue(value)
-    props.updateNote(props.id, serialize(value))
+    props.dispatch({ type: 'update note', id: props.id, contents: serialize(value)})
   }
 
   return (

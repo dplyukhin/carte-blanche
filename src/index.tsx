@@ -9,49 +9,23 @@ import { BlockMath, InlineMath } from 'react-katex';
 import Hotkeys from 'react-hot-keys';
 import './index.scss';
 import * as serviceWorker from './serviceWorker';
-import { State, interpretKeypress, Card, Keypress, ID, Index, Note, Snapshot, DB_STRING, Mode } from './model';
+import { State, Card, ID, Index, Note, Snapshot, DB_STRING, Mode } from './model';
 import 'materialize-css/dist/js/materialize.min.js';
 import 'katex/dist/katex.min.css';
-import NoteEditor from './NoteEditor';
 import Dropbox, { AuthenticatedCloud } from './cloud';
 import logo from './logo.jpeg';
 import * as smoothscroll from 'seamless-scroll-polyfill';
+import { Action } from './actions';
+import SearchBar from './components/SearchBar';
+import { scrollToElement } from './util';
+import EditNote from './components/EditNote';
 smoothscroll.polyfill();
 
 
 type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelected: boolean, mode: Mode }
 type PreviewProps = { card: Card, id: ID, state: State }
 
-function onKeyDown(e: React.KeyboardEvent) {
-  if (state) {
-    if (e.key === 'Escape') {
-      state.mode = 'viewing'
-      state.save()
-      render()
-    }
-  }
-}
 
-function scrollToElement(el : HTMLElement) {
-  el.scrollIntoView({behavior: "smooth", block: "center"})
-}
-
-const EditNote = React.memo((
-  props: { note: Note, id: ID }
-): JSX.Element => {
-
-  const {note, id} = props
-  const ref: React.MutableRefObject<HTMLTextAreaElement | null> = useRef(null)
-
-  if (ref.current)
-    scrollToElement(ref.current)
-
-  return (
-    <div className="card-panel z-depth-3 edited-note">
-      <NoteEditor note={note} id={id} updateNote={updateNote} onKeyDown={onKeyDown} />
-    </div>
-  )
-})
 
 const MarkdownRenderers: ReactMarkdown.Renderers = {
   math: ({value}) => <BlockMath>{value}</BlockMath>,
@@ -105,7 +79,7 @@ const RenderCard = React.memo((props: CardProps): JSX.Element => {
 
     if (isFocused && state.mode === 'editing') {
       return (
-        <EditNote note={card} id={id} />
+        <EditNote note={card} id={id} dispatch={dispatch} />
       )
     }
     else {
@@ -142,34 +116,6 @@ const CardPreview = React.memo(({card, id, state}: PreviewProps): JSX.Element =>
   }
 })
 
-function Search({state}: {state: State | null}): JSX.Element {
-  const [query, setQuery] = useState("");
-  const ref: React.MutableRefObject<HTMLInputElement | null> = useRef(null)
-
-  function onSubmit(event: React.SyntheticEvent) {
-    event.preventDefault()
-    if (state) {
-      state.search(query)
-      render()
-      if (ref.current) ref.current.blur()
-    }
-  }
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Escape') {
-      if (ref.current) ref.current.blur()
-    }
-  }
-
-  return (
-    <form className="input-field" onSubmit={onSubmit}>
-      <i className="material-icons prefix">search</i>
-      <input id="icon_prefix" type="text" ref={ref}
-        onChange={ e => setQuery(e.target.value) } 
-        onKeyDown={onKeyDown} />
-      <label htmlFor="icon_prefix">Search</label>
-    </form>
-  )
-}
 
 function Editor({state}: {state: State | null}): JSX.Element {
 
@@ -199,7 +145,7 @@ function Editor({state}: {state: State | null}): JSX.Element {
         })}
       </div>
       <div id="main-panel" className="col l4 offset-l4 m6 offset-m3 s10 offset-s1"> 
-        <Search state={state} />
+        <SearchBar dispatch={dispatch} />
         {
           Dropbox.isAuthenticated ||
           <div className="card-panel">
@@ -226,41 +172,41 @@ function Editor({state}: {state: State | null}): JSX.Element {
   )
 }
 
-const keymap : { [key: string] : Keypress} = {
-  'Enter': 'enter',
-  'command+c': 'copy',
-  'command+x': 'cut',
-  'command+v': 'paste',
-  'command+z': 'undo',
-  'command+shift+z': 'redo',
-  'Space': 'space',
-  'right': 'right',
-  'left': 'left',
-  'up': 'up',
-  'down': 'down',
-  'Escape': 'back',
-  'Backspace': 'backspace',
-  'shift+down': 'shift+down',
-  'shift+up': 'shift+up',
-  'shift+f': 'find',
+const normalModeKeymap : { [key: string] : Action} = {
+  'Enter':           {type: 'edit'},
+  'command+c':       {type: 'copy'},
+  'command+x':       {type: 'cut'},
+  'command+v':       {type: 'paste'},
+  'command+z':       {type: 'undo'},
+  'command+shift+z': {type: 'redo'},
+  'Space':           {type: 'new note'},
+  'right':           {type: 'right'},
+  'left':            {type: 'left'},
+  'up':              {type: 'up'},
+  'down':            {type: 'down'},
+  'Escape':          {type: 'back'},
+  'Backspace':       {type: 'remove'},
+  'shift+down':      {type: 'select and go down'},
+  'shift+up':        {type: 'select and go up'},
+  'shift+f':         {type: 'find related notes'},
   // VIM keybindings
-  'j': 'down',
-  'k': 'up',
-  'h': 'left',
-  'l': 'right',
-  'shift+h': 'back',
-  'shift+l': 'forward',
-  'u': 'undo',
-  'ctrl+r': 'redo',
-  'y': 'copy',
-  'p': 'paste',
-  'x': 'cut',
-  'd': 'backspace',
-  'i': 'enter',
-  'a': 'space'
+  'j':               {type: 'down'},
+  'k':               {type: 'up'},
+  'h':               {type: 'left'},
+  'l':               {type: 'right'},
+  'shift+h':         {type: 'back'},
+  'shift+l':         {type: 'forward'},
+  'u':               {type: 'undo'},
+  'ctrl+r':          {type: 'redo'},
+  'y':               {type: 'copy'},
+  'p':               {type: 'paste'},
+  'x':               {type: 'cut'},
+  'd':               {type: 'remove'},
+  'i':               {type: 'edit'},
+  'a':               {type: 'new note'},
 }
 
-const boundKeys = Object.keys(keymap).join(",")
+const boundKeys = Object.keys(normalModeKeymap).join(",")
 
 function App() {
   return (
@@ -326,23 +272,12 @@ function handleKey(key: string, event: any) {
   if (state) {
     // Prevent the default refresh event under WINDOWS system
     event.preventDefault() 
-    console.log(keymap[key]) 
-    interpretKeypress(keymap[key], state);
-    console.log(state)
-    render()
+    console.log(normalModeKeymap[key]) 
+    dispatch(normalModeKeymap[key])
   }
 }; 
 
-function updateNote(id : ID, contents : string) {
-  if (state) {
-    if (state.updateNote(id, contents)) {
-      render()
-    }
-    else {
-      console.error(`Cannot update card ${id}: not a note`)
-    }
-  }
-}
+
 
 function render() {
   ReactDOM.render(
@@ -359,6 +294,99 @@ window.onpopstate = function (e: PopStateEvent) {
     state.view(window.location.hash.slice(1), e.state.focus)
     render()
   }
+}
+
+function dispatch(action: Action) {
+  if (state === null) return
+
+  if (action.type === 'search') {
+    state.search(action.query)
+  }
+
+  if (state.mode === 'viewing') {
+      if (action.type === 'edit' && state.focus >= 0) {
+          state.mode = 'editing'
+      }
+      else if (action.type === 'find related notes' && state.focus >= 0) {
+          state.showRelatedNotes()
+      }
+      else if (action.type === 'back') {
+          state.goBack()
+      }
+      else if (action.type === 'forward') {
+          state.goForward()
+      }
+      else if (action.type === 'new note') {
+          const note = state.newNote()
+          state.insertAfter(state.focus, note)
+          state.focus = state.focus + 1
+          state.mode = 'editing'
+      }
+      else if (action.type === 'paste') {
+          state.paste()
+      }
+      else if (action.type === 'right' && state.focus >= 0) {
+          const note = state.currentIndex.contents[state.focus]
+          state.enter(note + '-outgoing')
+      }
+      else if (action.type === 'left' && state.focus >= 0) {
+          const note = state.currentIndex.contents[state.focus]
+          state.enter(note + '-incoming')
+      }
+  }
+  if (state.mode === 'viewing' || state.mode === 'selecting') {
+      if (action.type === 'remove' && state.focus >= 0) {
+          state.removeSelection()
+      }
+      else if (action.type === 'copy' && state.focus >= 0) {
+          state.copy()
+          state.mode = 'viewing'
+          state.selection = undefined
+      }
+      else if (action.type === 'cut' && state.focus >= 0) {
+          state.copy()
+          state.removeSelection()
+      }
+      else if (action.type === 'back') {
+          state.mode = 'viewing'
+          state.selection = undefined
+      }
+      else if (action.type === 'up') {
+          state.goUp()
+      }
+      else if (action.type === 'down') {
+          state.goDown()
+      }
+      else if (action.type === 'select and go down' && state.focus >= 0) {
+          state.mode = 'selecting'
+          if (state.selection === undefined) {
+              state.selection = state.focus
+          }
+          state.goDown()
+      }
+      else if (action.type === 'select and go up') {
+          state.mode = 'selecting'
+          if (state.selection === undefined) {
+              state.selection = state.focus
+          }
+          state.goUp()
+      }
+  }
+  if (state.mode === 'editing') {
+      if (action.type === 'stop editing') {
+          state.mode = 'viewing'
+          state.save()
+      }
+      else if (action.type === 'update note') {
+          const result = state.updateNote(action.id, action.contents)
+
+          if (!result)
+            console.error(`Cannot update card ${action.id}: not a note`)
+      }
+  }
+
+  console.log(state)
+  render()
 }
 
 render()
