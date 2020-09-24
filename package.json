@@ -19,7 +19,7 @@
     "hotkeys-js": "^3.8.1",
     "isomorphic-fetch": "^2.2.1",
     "materialize-css": "^1.0.0-rc.2",
-    "natural": "^2.1.5",
+    "natural": "https://github.com/dplyukhin/natural",
     "react": "^16.13.1",
     "react-contenteditable": "^3.3.4",
     "react-dom": "^16.13.1",
