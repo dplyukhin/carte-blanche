@@ -240,6 +240,7 @@ const keymap : { [key: string] : Keypress} = {
   'Backspace': 'backspace',
   'shift+down': 'shift+down',
   'shift+up': 'shift+up',
+  'shift+f': 'find',
   // VIM keybindings
   'j': 'down',
   'k': 'up',

@@ -27,16 +27,12 @@ export function newIndex(): Index {
  * Given some markdown text, return a version of that text minus formatting.
  * @param text 
  */
-export async function removeFormatting(text: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    remark()
-      .use(RemarkMathPlugin)
-      .use(strip)
-      .process(text, function (err, file) {
-        if (err) reject(err);
-        else resolve(String(file));
-      })
-  });
+export function removeFormatting(text: string): string {
+    return remark()
+        .use(RemarkMathPlugin)
+        .use(strip)
+        .processSync(text)
+        .toString()
 }
 
 /**
@@ -75,14 +71,14 @@ function removeVecFromIndex(id: ID, vec: WordVector, index: Index) {
     }
 }
 
-export async function addToIndex(id: ID, contents: string, index: Index) {
-    const text = await removeFormatting(contents)
+export function addToIndex(id: ID, contents: string, index: Index) {
+    const text = removeFormatting(contents)
     const features = getFeatures(text)
     addVecToIndex(id, features, index);
 }
 
-export async function removeFromIndex(id: ID, contents: string, index: Index) {
-    const text = await removeFormatting(contents)
+export function removeFromIndex(id: ID, contents: string, index: Index) {
+    const text = removeFormatting(contents)
     const features = getFeatures(text)
     removeVecFromIndex(id, features, index);
 }

@@ -21,6 +21,7 @@ export type Keypress
     | 'left' | 'right' | 'up' | 'down' | 'back' | 'forward'
     | 'copy' | 'paste' | 'cut' | 'undo' | 'redo'
     | 'shift+down' | 'shift+up'
+    | 'find'
 
 export type Mode = 'viewing' | 'editing' | 'selecting'
 
@@ -28,6 +29,9 @@ export function interpretKeypress(key: Keypress, state: State) {
     if (state.mode === 'viewing') {
         if (key === 'enter' && state.focus >= 0) {
             state.mode = 'editing'
+        }
+        else if (key === 'find' && state.focus >= 0) {
+            state.showRelatedNotes()
         }
         else if (key === 'back') {
             state.goBack()
@@ -233,6 +237,13 @@ export class State {
         index.contents = results
         this.enter(id)
         this.save()
+    }
+    showRelatedNotes() {
+        const card = this.focusedCard
+        if (card !== undefined && card.type === 'note') {
+            const text = Search.removeFormatting(card.contents)
+            this.search(text)
+        }
     }
     updateNote(id : ID, contents : string): boolean {
         const note = this.db[id]
