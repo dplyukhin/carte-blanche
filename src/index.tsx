@@ -34,9 +34,9 @@ function scrollToElement(el : HTMLElement) {
   el.scrollIntoView({behavior: "smooth", block: "center"})
 }
 
-function EditNote(
+const EditNote = React.memo((
   props: { note: Note, id: ID }
-): JSX.Element {
+): JSX.Element => {
 
   const {note, id} = props
   const ref: React.MutableRefObject<HTMLTextAreaElement | null> = useRef(null)
@@ -49,7 +49,7 @@ function EditNote(
       <NoteEditor note={note} id={id} updateNote={updateNote} onKeyDown={onKeyDown} />
     </div>
   )
-}
+})
 
 const MarkdownRenderers: ReactMarkdown.Renderers = {
   math: ({value}) => <BlockMath>{value}</BlockMath>,
@@ -57,9 +57,9 @@ const MarkdownRenderers: ReactMarkdown.Renderers = {
   code: ({language, value}) => <SyntaxHighlighter language={language} style={docco}>{value}</SyntaxHighlighter>
 }
 
-function ViewNote(
+const ViewNote = React.memo((
   props: { card: Note, id: ID, state: State, isFocused: boolean, isSelected: boolean }
-): JSX.Element {
+): JSX.Element => {
 
   const ifFocused = props.isFocused ? "z-depth-3" : "";
   const ifSelected = props.isSelected ? "blue lighten-5" : "";
@@ -87,7 +87,7 @@ function ViewNote(
       />
     </div>
   )
-}
+})
 
 const RenderCard = React.memo((props: CardProps): JSX.Element => {
   const {card, id, state, isFocused} = props;
