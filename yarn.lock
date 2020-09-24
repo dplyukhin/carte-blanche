@@ -7894,10 +7894,9 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
 
-natural@^2.1.5:
+"natural@https://github.com/dplyukhin/natural":
   version "2.1.5"
-  resolved "https://registry.yarnpkg.com/natural/-/natural-2.1.5.tgz#22d8c607c0517e85815bb68b75cfcfc5f80b0585"
-  integrity sha512-z5ljUGW3Nqgu+e1m0/sN0b7GSsbGyGCTCgQJ6hv0sxOe2+8FaIlkdHIGkP0y1zCxO0vYawukOEUTryY9NKix7w==
+  resolved "https://github.com/dplyukhin/natural#ee3e81be05c2084d9e3a4e8db8a6859a4c2c4dc0"
   dependencies:
     afinn-165 "^1.0.2"
     apparatus "^0.0.10"
@@ -12245,9 +12244,9 @@ webpack@4.42.0:
     webpack-sources "^1.4.1"
 
 webpack@^4.29.0:
-  version "4.44.1"
-  resolved "https://registry.yarnpkg.com/webpack/-/webpack-4.44.1.tgz#17e69fff9f321b8f117d1fda714edfc0b939cc21"
-  integrity sha512-4UOGAohv/VGUNQJstzEywwNxqX417FnjZgZJpJQegddzPmTvph37eBIRbRTfdySXzVtJXLJfbMN3mMYhM6GdmQ==
+  version "4.44.2"
+  resolved "https://registry.yarnpkg.com/webpack/-/webpack-4.44.2.tgz#6bfe2b0af055c8b2d1e90ed2cd9363f841266b72"
+  integrity sha512-6KJVGlCxYdISyurpQ0IPTklv+DULv05rs2hseIXer6D7KrUicRDLFb4IUM1S6LUAKypPM/nSiVSuv8jHu1m3/Q==
   dependencies:
     "@webassemblyjs/ast" "1.9.0"
     "@webassemblyjs/helper-module-context" "1.9.0"
