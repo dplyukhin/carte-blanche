@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useRef } from 'react'
 import { Action } from '../actions'
 import { ID, Note } from '../model'
 import { scrollToElement } from '../util'

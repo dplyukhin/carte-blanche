@@ -1,223 +1,17 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import ReactMarkdown from 'react-markdown';
-import RemarkMathPlugin from 'remark-math';
-import RemarkHighlightPlugin from 'remark-highlight.js';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { BlockMath, InlineMath } from 'react-katex';
-import Hotkeys from 'react-hot-keys';
 import './index.scss';
 import * as serviceWorker from './serviceWorker';
-import { State, Card, ID, Index, Note, Snapshot, DB_STRING, Mode } from './model';
+import { State, Snapshot, DB_STRING } from './model';
 import 'materialize-css/dist/js/materialize.min.js';
 import 'katex/dist/katex.min.css';
 import Dropbox, { AuthenticatedCloud } from './cloud';
-import logo from './logo.jpeg';
 import * as smoothscroll from 'seamless-scroll-polyfill';
 import { Action } from './actions';
-import SearchBar from './components/SearchBar';
-import { scrollToElement } from './util';
-import EditNote from './components/EditNote';
+import App from './components/App';
 smoothscroll.polyfill();
 
 
-type CardProps = { card: Card, id: ID, state: State, isFocused: boolean, isSelected: boolean, mode: Mode }
-type PreviewProps = { card: Card, id: ID, state: State }
-
-
-
-const MarkdownRenderers: ReactMarkdown.Renderers = {
-  math: ({value}) => <BlockMath>{value}</BlockMath>,
-  inlineMath: ({ value }) => <InlineMath>{value}</InlineMath>,
-  code: ({language, value}) => <SyntaxHighlighter language={language} style={docco}>{value}</SyntaxHighlighter>
-}
-
-const ViewNote = React.memo((
-  props: { card: Note, id: ID, state: State, isFocused: boolean, isSelected: boolean }
-): JSX.Element => {
-
-  const ifFocused = props.isFocused ? "z-depth-3" : "";
-  const ifSelected = props.isSelected ? "blue lighten-5" : "";
-  const className = ["card-panel", ifFocused, ifSelected].join(" ");
-
-  const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null)
-
-  useEffect( () => {
-    const el = ref.current
-    if (el && props.isFocused) {
-      console.log("Scrolling to", props.id);
-
-      setTimeout(() => {
-        scrollToElement(el)
-      }, 20)
-    }
-  })
-
-  return (
-    <div className={className} ref={ref}>
-      <ReactMarkdown 
-        source={props.card.contents}
-        plugins={[RemarkMathPlugin, RemarkHighlightPlugin]}
-        renderers={MarkdownRenderers as any}
-      />
-    </div>
-  )
-})
-
-const RenderCard = React.memo((props: CardProps): JSX.Element => {
-  const {card, id, state, isFocused} = props;
-
-  if (card.type === 'index') {
-    return (
-      <div>
-        {`Index: (${card.contents.length} cards)`}
-      </div>
-    )
-  }
-  else {
-
-    if (isFocused && state.mode === 'editing') {
-      return (
-        <EditNote note={card} id={id} dispatch={dispatch} />
-      )
-    }
-    else {
-      return (
-        <ViewNote {...props} card={card} />
-      )
-    }
-  }
-})
-
-const CardPreview = React.memo(({card, id, state}: PreviewProps): JSX.Element => {
-  if (card.type === 'index') {
-    return (
-      <div className="card-panel truncate">
-        {`Index: (${card.contents.length} cards)`}
-      </div>
-    )
-  }
-  else {
-    const words = card.contents.split(" ");
-    const preview = words.length > 20 
-      ? words.slice(0,20).join(" ") + "..." 
-      : card.contents;
-
-    return (
-      <div className="card-panel">
-        <ReactMarkdown 
-          source={preview}
-          plugins={[RemarkMathPlugin, RemarkHighlightPlugin]}
-          renderers={MarkdownRenderers as any}
-        />
-      </div>
-    )
-  }
-})
-
-
-function Editor({state}: {state: State | null}): JSX.Element {
-
-  if (state === null) {
-    return (
-      <div className="row">
-        <div className="col s3 offset-s4">
-          <div className="card-panel valign-wrapper">
-            <b className="center-align">Loading...</b>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const cards = state.currentIndex.contents
-  const focusedID = cards[state.focus]
-  const outgoing = state.db[focusedID + "-outgoing"] as Index | undefined
-  const incoming = state.db[focusedID + "-incoming"] as Index | undefined
-
-  return (
-    <div className="row">
-      <div id="left-panel" className="pinned col l3 offset-l1 m3 hide-on-small-only">
-        <a href="/"><img id="logo" src={logo} alt="Go home" /></a>
-        {incoming && incoming.contents.map(function (id: ID, i: number) {
-            return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
-        })}
-      </div>
-      <div id="main-panel" className="col l4 offset-l4 m6 offset-m3 s10 offset-s1"> 
-        <SearchBar dispatch={dispatch} />
-        {
-          Dropbox.isAuthenticated ||
-          <div className="card-panel">
-            <a href={Dropbox.authenticationURL}>Sign in to Dropbox</a>
-          </div>  
-        }
-        {cards.map(function (id: ID, i: number) {
-            const card = state.db[id]
-            const isFocused = state.focus === i
-            const isSelected = state.mode === 'selecting' &&
-              ((state.focus <= i && i <= state.selection!) ||
-              (state.focus >= i && i >= state.selection!))
-
-
-            return <RenderCard id={id} card={card} key={i} state={state} isFocused={isFocused} isSelected={isSelected} mode={state.mode} />
-        })}
-      </div>
-      <div id="right-panel" className="pinned col l3 offset-l8 m3 offset-m9 hide-on-small-only">
-        {outgoing && outgoing.contents.map(function (id: ID, i: number) {
-            return <CardPreview key={i} card={state.db[id]} id={id} state={state} />
-        })}
-      </div>
-    </div>
-  )
-}
-
-const normalModeKeymap : { [key: string] : Action} = {
-  'Enter':           {type: 'edit'},
-  'command+c':       {type: 'copy'},
-  'command+x':       {type: 'cut'},
-  'command+v':       {type: 'paste'},
-  'command+z':       {type: 'undo'},
-  'command+shift+z': {type: 'redo'},
-  'Space':           {type: 'new note'},
-  'right':           {type: 'right'},
-  'left':            {type: 'left'},
-  'up':              {type: 'up'},
-  'down':            {type: 'down'},
-  'Escape':          {type: 'back'},
-  'Backspace':       {type: 'remove'},
-  'shift+down':      {type: 'select and go down'},
-  'shift+up':        {type: 'select and go up'},
-  'shift+f':         {type: 'find related notes'},
-  // VIM keybindings
-  'j':               {type: 'down'},
-  'k':               {type: 'up'},
-  'h':               {type: 'left'},
-  'l':               {type: 'right'},
-  'shift+h':         {type: 'back'},
-  'shift+l':         {type: 'forward'},
-  'u':               {type: 'undo'},
-  'ctrl+r':          {type: 'redo'},
-  'y':               {type: 'copy'},
-  'p':               {type: 'paste'},
-  'x':               {type: 'cut'},
-  'd':               {type: 'remove'},
-  'i':               {type: 'edit'},
-  'a':               {type: 'new note'},
-}
-
-const boundKeys = Object.keys(normalModeKeymap).join(",")
-
-function App() {
-  return (
-    <Hotkeys
-      keyName={boundKeys}
-      onKeyDown={handleKey}
-    >
-      <Editor state={state}/>
-    </Hotkeys>
-  );
-}
 
 
 
@@ -268,21 +62,10 @@ if (Dropbox.isAuthenticated) {
 })()
 
 
-function handleKey(key: string, event: any) {
-  if (state) {
-    // Prevent the default refresh event under WINDOWS system
-    event.preventDefault() 
-    console.log(normalModeKeymap[key]) 
-    dispatch(normalModeKeymap[key])
-  }
-}; 
-
-
-
 function render() {
   ReactDOM.render(
     <React.StrictMode>
-      <App />
+      <App state={state} dispatch={dispatch} />
     </React.StrictMode>,
     document.getElementById('root')
   );  
