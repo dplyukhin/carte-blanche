@@ -2,7 +2,7 @@ import React from 'react';
 import Hotkeys from 'react-hot-keys';
 import logo from '../logo.jpeg';
 import SearchBar from './SearchBar';
-import CardPreview from './CardPreview';
+import CardPreview from './NotePreview';
 import Note from './Note';
 import Dropbox from '../cloud';
 import { ID, Index, State } from '../model';

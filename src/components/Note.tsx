@@ -1,8 +1,8 @@
 import React from "react"
 import { Action } from "../actions"
 import { ID, Mode, Note } from "../model"
-import EditNote from "./EditNote"
-import ViewNote from "./ViewNote"
+import EditNote from "./NoteEditor"
+import ViewNote from "./NoteViewer"
 
 
 type Props = {

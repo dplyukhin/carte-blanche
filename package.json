@@ -21,6 +21,7 @@
     "materialize-css": "^1.0.0-rc.2",
     "natural": "https://github.com/dplyukhin/natural",
     "react": "^16.13.1",
+    "react-beautiful-dnd": "^13.0.0",
     "react-contenteditable": "^3.3.4",
     "react-dom": "^16.13.1",
     "react-hot-keys": "^2.5.2",

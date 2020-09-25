@@ -12,9 +12,6 @@ import App from './components/App';
 smoothscroll.polyfill();
 
 
-
-
-
 let state : State | null = null;
 
 // Periodically upload state to Dropbox
