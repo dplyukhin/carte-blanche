@@ -6,41 +6,41 @@ import RemarkMathPlugin from 'remark-math';
 import RemarkHighlightPlugin from 'remark-highlight.js';
 import { MarkdownRenderers } from "../util";
 
-type Props = { 
-    card: Note, 
-    id: ID, 
-    isFocused: boolean, 
-    isSelected: boolean 
+type Props = {
+    card: Note,
+    id: ID,
+    isFocused: boolean,
+    isSelected: boolean
 }
 
 export default React.memo((
-  {card, id, isFocused, isSelected}: Props
+    { card, id, isFocused, isSelected }: Props
 ): JSX.Element => {
 
-  const ifFocused = isFocused ? "z-depth-3" : "";
-  const ifSelected = isSelected ? "blue lighten-5" : "";
-  const className = ["card-panel", ifFocused, ifSelected].join(" ");
+    const ifFocused = isFocused ? "z-depth-3" : "";
+    const ifSelected = isSelected ? "blue lighten-5" : "";
+    const className = ["card-panel", ifFocused, ifSelected].join(" ");
 
-  const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null)
+    const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null)
 
-  useEffect( () => {
-    const el = ref.current
-    if (el && isFocused) {
-      console.log("Scrolling to", id);
+    useEffect(() => {
+        const el = ref.current
+        if (el && isFocused) {
+            console.log("Scrolling to", id);
 
-      setTimeout(() => {
-        scrollToElement(el)
-      }, 20)
-    }
-  })
+            setTimeout(() => {
+                scrollToElement(el)
+            }, 20)
+        }
+    })
 
-  return (
-    <div className={className} ref={ref}>
-      <ReactMarkdown 
-        source={card.contents}
-        plugins={[RemarkMathPlugin, RemarkHighlightPlugin]}
-        renderers={MarkdownRenderers as any}
-      />
-    </div>
-  )
+    return (
+        <div className={className} ref={ref}>
+            <ReactMarkdown
+                source={card.contents}
+                plugins={[RemarkMathPlugin, RemarkHighlightPlugin]}
+                renderers={MarkdownRenderers as any}
+            />
+        </div>
+    )
 })

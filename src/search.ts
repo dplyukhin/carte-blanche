@@ -40,17 +40,17 @@ export function removeFormatting(text: string): string {
  * @param text A plain text string
  */
 export function getFeatures(text: string): WordVector {
-  const expandedText = contractions.expand(text);
-  const tokens = natural.PorterStemmer.tokenizeAndStem(expandedText);
-  const vec: WordVector = {};
-  for (const token of tokens) {
-      vec[token] = vec[token] === undefined ? 1 : vec[token] + 1;
-  }
-  // Normalize
-  for (const token of Object.keys(vec)) {
-      vec[token] = vec[token] / tokens.length
-  }
-  return vec;
+    const expandedText = contractions.expand(text);
+    const tokens = natural.PorterStemmer.tokenizeAndStem(expandedText);
+    const vec: WordVector = {};
+    for (const token of tokens) {
+        vec[token] = vec[token] === undefined ? 1 : vec[token] + 1;
+    }
+    // Normalize
+    for (const token of Object.keys(vec)) {
+        vec[token] = vec[token] / tokens.length
+    }
+    return vec;
 }
 
 function addVecToIndex(id: ID, vec: WordVector, index: Index) {
@@ -92,7 +92,7 @@ function cosineSimilarity(vec1: WordVector, vec2: WordVector): number {
     // Note that we only need to iterate over the keys of *one* of the vectors
     for (const token of Object.keys(vec1)) {
         numerator += (vec1[token] || 0) * (vec2[token] || 0)
-    } 
+    }
     // Since we know both vectors are normalized, the denominator is 1
     return numerator;
 }
@@ -140,8 +140,8 @@ export function search(queryString: string, index: Index): ID[] {
         similarity.push([id, rankedCosineSimilarity(query, vec)])
     }
     // Sort by score, descending
-    similarity.sort((a,b) => b[1] - a[1])
+    similarity.sort((a, b) => b[1] - a[1])
     // console.log("Similarity scores:", similarity)
 
-    return similarity.map(([id, _]) => id).slice(0,30)
+    return similarity.map(([id, _]) => id).slice(0, 30)
 }
