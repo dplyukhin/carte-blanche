@@ -31,7 +31,9 @@ export default React.memo((
     }
     else {
         return (
-            <ViewNote card={card} id={id} isFocused={isFocused} isSelected={isSelected} />
+            <ViewNote 
+                card={card} id={id} position={position}
+                isFocused={isFocused} isSelected={isSelected} />
         )
     }
 })

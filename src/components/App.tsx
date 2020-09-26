@@ -8,6 +8,7 @@ import Dropbox from '../cloud';
 import { ID, Index, State } from '../model';
 import { Action } from '../actions';
 import { boundKeys, handleKey } from '../keymap';
+import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 
 
 function Loading(): JSX.Element {
@@ -31,15 +32,22 @@ function CloudAuthentication(): JSX.Element | null {
     )
 }
 
-function PreviewCards(state: State, index: Index): JSX.Element[] {
+function PreviewCards(state: State, index: Index): JSX.Element {
     return (
-        index.contents.map(function (id: ID, i: number) {
-            return <CardPreview key={i} card={state.db[id]} />
-        })
+        <div>{
+            index.contents.map(function (id: ID, i: number) {
+                return <CardPreview key={i} card={state.db[id]} />
+            })
+        }</div>
     )
 }
 
-function MainCards(state: State, dispatch: (action: Action) => void): JSX.Element[] {
+type MainProps = {
+    state: State,
+    dispatch(action: Action): any,
+}
+
+function MainCards({ state, dispatch }: MainProps): JSX.Element[] {
     return (
         state.currentIndex.contents.map(function (id: ID, i: number) {
 
@@ -75,20 +83,29 @@ export default function App({ state, dispatch }: Props): JSX.Element {
             keyName={boundKeys}
             onKeyDown={handleKey(dispatch)}
         >
-            <div className="row">
-                <div id="left-panel" className="pinned col l3 offset-l1 m3 hide-on-small-only">
-                    <a href="/"><img id="logo" src={logo} alt="Go home" /></a>
-                    {incoming && PreviewCards(state, incoming)}
+            <DragDropContext onDragEnd={console.log}>
+                <div className="row">
+                    <div id="left-panel" className="pinned col l3 offset-l1 m3 hide-on-small-only">
+                        <a href="/"><img id="logo" src={logo} alt="Go home" /></a>
+                        {incoming && PreviewCards(state, incoming)}
+                    </div>
+                    <div id="main-panel" className="col l4 offset-l4 m6 offset-m3 s10 offset-s1">
+                        <SearchBar dispatch={dispatch} />
+                        <CloudAuthentication />
+                        <Droppable droppableId="main">
+                            {provided =>
+                                <div {...provided.droppableProps} ref={provided.innerRef}>
+                                    {MainCards({state, dispatch})}
+                                    {provided.placeholder}
+                                </div>
+                            }
+                        </Droppable>
+                    </div>
+                    <div id="right-panel" className="pinned col l3 offset-l8 m3 offset-m9 hide-on-small-only">
+                        {outgoing && PreviewCards(state, outgoing)}
+                    </div>
                 </div>
-                <div id="main-panel" className="col l4 offset-l4 m6 offset-m3 s10 offset-s1">
-                    <SearchBar dispatch={dispatch} />
-                    <CloudAuthentication />
-                    {MainCards(state, dispatch)}
-                </div>
-                <div id="right-panel" className="pinned col l3 offset-l8 m3 offset-m9 hide-on-small-only">
-                    {outgoing && PreviewCards(state, outgoing)}
-                </div>
-            </div>
+            </DragDropContext>
         </Hotkeys>
     )
 }

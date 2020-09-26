@@ -5,26 +5,29 @@ import { scrollToElement } from "../util";
 import RemarkMathPlugin from 'remark-math';
 import RemarkHighlightPlugin from 'remark-highlight.js';
 import { MarkdownRenderers } from "../util";
+import { Draggable } from "react-beautiful-dnd";
 
 type Props = {
     card: Note,
     id: ID,
     isFocused: boolean,
-    isSelected: boolean
+    isSelected: boolean,
+    position: number,
 }
 
 export default React.memo((
-    { card, id, isFocused, isSelected }: Props
+    { card, id, isFocused, isSelected, position }: Props
 ): JSX.Element => {
 
     const ifFocused = isFocused ? "z-depth-3" : "";
     const ifSelected = isSelected ? "blue lighten-5" : "";
     const className = ["card-panel", ifFocused, ifSelected].join(" ");
 
-    const ref: React.MutableRefObject<HTMLDivElement | null> = useRef(null)
+    // A reference to this div so that we can scroll to it when focused
+    const divRef: React.MutableRefObject<HTMLDivElement | null> = useRef(null)
 
     useEffect(() => {
-        const el = ref.current
+        const el = divRef.current
         if (el && isFocused) {
             console.log("Scrolling to", id);
 
@@ -33,14 +36,26 @@ export default React.memo((
             }, 20)
         }
     })
+    
+    // const setRef = (ref: HTMLDivElement | null) => {
+    //     divRef.current = ref
+    // };
 
     return (
-        <div className={className} ref={ref}>
-            <ReactMarkdown
-                source={card.contents}
-                plugins={[RemarkMathPlugin, RemarkHighlightPlugin]}
-                renderers={MarkdownRenderers as any}
-            />
-        </div>
+        <Draggable draggableId={position.toString()} index={position}>
+            {provided =>
+                <div 
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    ref={provided.innerRef}
+                    className={className}>
+                    <ReactMarkdown
+                        source={card.contents}
+                        plugins={[RemarkMathPlugin, RemarkHighlightPlugin]}
+                        renderers={MarkdownRenderers as any}
+                    />
+                </div>
+            }
+        </Draggable>
     )
 })
