@@ -67,7 +67,6 @@
   },
   "devDependencies": {
     "@types/natural": "^2.1.0",
-    "@types/react-beautiful-dnd": "^13.0.0",
     "node-sass": "^4.14.1"
   }
 }
